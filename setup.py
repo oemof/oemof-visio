@@ -12,7 +12,7 @@ def read(fname):
 
 
 setup(name='oemof_visio',
-      version=0.0.1,
+      version='v0.0.1',
       author='oemof developing group',
       author_email='oemof@rl-institut.de',
       description='The open energy modelling framework',
