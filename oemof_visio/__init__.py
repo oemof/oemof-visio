@@ -1,1 +1,1 @@
-from oemof_viso import plot
+from oemof_visio import plot
