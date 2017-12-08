@@ -89,7 +89,7 @@ def color_from_dict(colordict, df):
 
 
 def set_datetime_ticks(ax, dates, tick_distance=None, number_autoticks=3,
-                       date_format='%d-%m-%Y %H:%M', offset=0):
+                       date_format='%d-%m-%Y %H:%M', offset=0, tight=False):
     r""" Set configurable ticks for the time axis. One can choose the
     number of ticks or the distance between ticks and the format.
 
@@ -124,6 +124,8 @@ def set_datetime_ticks(ax, dates, tick_distance=None, number_autoticks=3,
         [item.strftime(date_format)
          for item in dates.tolist()[0::tick_distance]],
         rotation=0, minor=False)
+    if tight:
+        ax.set_xlim(0, int(len(dates)))
     return ax
 
 
