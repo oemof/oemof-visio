@@ -12,7 +12,7 @@ Use pypi to install the latest version.
 Examples
 ========
 
-You can use this library with `oemof >= 0.2.0`.
+You can use this library with :code:`oemof >= 0.2.0`.
 Have a look at the plotting examples at the
 `'oemof_example' repository <https://github.com/oemof/oemof_examples>`_ to
 learn how to create the following examples.
