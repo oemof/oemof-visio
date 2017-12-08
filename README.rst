@@ -17,4 +17,4 @@ Example (scientifically correct)
 Example (smooth)
 ================
 
-.. image:: docs/io_plot_smooth.png
+.. image:: docs/io_plot_smooth_pre.png
