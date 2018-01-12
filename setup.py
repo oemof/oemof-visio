@@ -19,4 +19,6 @@ setup(name='oemof_visio',
       url='https://oemof.org/',
       namespace_package=['oemof_visio'],
       long_description=read('README.rst'),
+      packages=find_packages(),
+      package_dir={'oemof_visio': 'oemof_visio'},
       install_requires=['matplotlib'])
