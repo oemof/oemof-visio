@@ -222,12 +222,17 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
 
+    if df_in is not None:
+        df_in = df_in.copy()
+    if df_out is not None:
+        df_out = df_out.copy()
+
     if df is not None:
         divided_columns = divide_bus_columns(bus_label, df.columns)
         in_cols = divided_columns['in_cols']
         out_cols = divided_columns['out_cols']
-        df_in = df[in_cols]
-        df_out = df[out_cols]
+        df_in = df[in_cols].copy()
+        df_out = df[out_cols].copy()
 
     # Create a bar (or area) plot for all input flows
     if inorder is not None:
