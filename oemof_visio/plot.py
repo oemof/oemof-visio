@@ -114,6 +114,9 @@ def set_datetime_ticks(ax, dates, tick_distance=None, number_autoticks=3,
         Normally the xticks start with the first value but it is possible to
         define an offset. An offset of 12 hours will set the tick to midday
         instead of the beginning of the day (12:00 instead of 0:00).
+    tight : bool
+        If set to True unused space on the x-axis will be avoided
+        (experimental).
     """
     if tick_distance is None:
         tick_distance = int(len(dates) / number_autoticks) - 1
@@ -130,7 +133,7 @@ def set_datetime_ticks(ax, dates, tick_distance=None, number_autoticks=3,
 
 
 def divide_bus_columns(bus_label, columns):
-    """
+    r"""
     Divide columns into input columns and output columns. This is function
     depends on the API of the oemof outputlib. Last changes (v0.2.0).
 
@@ -156,6 +159,11 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
             inorder=None, outorder=None, smooth=False):
     r""" Plotting a combined bar and line plot of a bus to see the fitting of
     in- and out-coming flows of the bus balance.
+
+    One can either pass the label of the bus and a DataFrame with all flows or
+    two DataFrames (one with the in-flows and one with the out-flows). The
+    label is used to separate in- and out-flows if only one DataFrame is
+    passed.
 
     Parameters
     ----------
@@ -187,8 +195,10 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
     outorder : list
         Order of columns to plot the bar plot
     smooth : bool
-        If smooth is True a line plot without stairs and an area plot instead of
-        a bar plot is used. A smooth plot is faster but mathematical incorrect.
+        If smooth is True a line plot without stairs and an area plot instead
+        of a bar plot is used. A smooth plot is faster but mathematical
+        incorrect. So it is recommended to use it for a high number of time
+        steps or for a quick draft plot.
 
     Note
     ----
