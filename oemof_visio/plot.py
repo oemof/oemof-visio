@@ -266,15 +266,10 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
     # of all lines. Normally the bottom line is the first line that is
     # plotted and will be on the lowest layer. This is difficult to read.
     new_df = pd.DataFrame(index=df_out.index)
-    n = 0
     tmp = 0
     for col in df_out.columns:
-        if n < 1:
-            new_df[col] = df_out[col]
-        else:
-            new_df[col] = df_out[col] + tmp
+        new_df[col] = df_out[col] + tmp
         tmp = new_df[col]
-        n += 1
     if outorder is None:
         new_df.sort_index(axis=1, ascending=False, inplace=True)
     else:
