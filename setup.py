@@ -21,4 +21,4 @@ setup(name='oemof_visio',
       long_description=read('README.rst'),
       packages=find_packages(),
       package_dir={'oemof_visio': 'oemof_visio'},
-      install_requires=['matplotlib'])
+      install_requires=['matplotlib', 'pandas'])
