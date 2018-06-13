@@ -237,6 +237,8 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
     # Create a bar (or area) plot for all input flows
     if inorder is not None:
         df_in = rearrange_df(df_in, inorder)
+    else:
+        df_in.sort_index(axis=1, ascending=True, inplace=True)
 
     df_in = df_in.reset_index(drop=True)
 
@@ -255,6 +257,8 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
     # Create a line plot for all output flows
     if outorder is not None:
         df_out = rearrange_df(df_out, outorder)
+    else:
+        df_out.sort_index(axis=1, ascending=True, inplace=True)
 
     df_out = df_out.reset_index(drop=True)
 
