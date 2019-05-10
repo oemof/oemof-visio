@@ -1,6 +1,9 @@
 import logging
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+from datetime import timedelta
+from matplotlib.widgets import Slider
 
 
 def slice_df(df, date_from=None, date_to=None):
@@ -153,10 +156,76 @@ def divide_bus_columns(bus_label, columns):
         'out_cols': [
             c for c in columns if (len(c[0]) > 1 and c[0][0] == bus_label)]}
 
+def add_last_index(x_axis_label, number_of_rows):
+    """Method
+    This method adds another x axis label to the array. If the input is a datetime, it adds the correct next datetime.
+    If it's a integer, it adds one.
+    :param x_axis_label:
+    :param number_of_rows:
+    :return:
+    """
+    if isinstance(x_axis_label[0],np.datetime64):
+        print("This is a numpy datetime")
+        # Calculate time granularity of the x axis ...
+        timedelta = np.datetime64(x_axis_label[1]) - np.datetime64(x_axis_label[0])
+        # ... and add one more label to the labels so that the last one is not cut out (because of the "post" step)
+        x_axis_label = np.append(x_axis_label, x_axis_label[len(x_axis_label) - 1] + timedelta)
+    elif isinstance(x_axis_label[0],pd.datetime):
+        print("This is a pandas datetime")
+        x_axis_label = pd.to_datetime(x_axis_label)
+        # Calculate time granularity of the x axis ...
+        timedelta = x_axis_label[len(x_axis_label)-1] - x_axis_label[0]
+        # ... and add one more label to the labels so that the last one is not cut out (because of the "post" step)
+        x_axis_label = x_axis_label.append(x_axis_label[1:2]+timedelta)
+    else:
+        x_axis_label = np.append(x_axis_label, number_of_rows + 1)
+    return x_axis_label
+
+def stacked_bar(df, df_in, df_out,ax,bus_label):
+    plt_definitions = []
+    plt_definitions_in = []
+
+    np_array  = np.array(df_in.T )
+    number_of_rows = np.size(np_array, 1)
+    n_columns = np.size(np_array, 0)
+    np_array  = np.append(np_array, np_array[0:n_columns, number_of_rows - 1:number_of_rows], axis=1)
+
+    np_array_in = np.array(df_out.T)
+    number_of_rows_in = np.size(np_array_in, 1)
+    n_columns_in = np.size(np_array_in, 0)
+    np_array_in = np.append(np_array_in, np_array_in[0:n_columns_in, number_of_rows_in - 1:number_of_rows_in], axis=1)
+
+    if df is not None:
+        x_axis_label = add_last_index(df.index.tolist(), number_of_rows)
+    else:
+        x_axis_label = add_last_index(df_in.index.tolist(), number_of_rows)
+
+    bottom = np.zeros(number_of_rows+1)
+    bottom_in = np.zeros(number_of_rows_in + 1)
+    top = np_array[0]
+    top_in = np_array_in[0]
+
+    for i, row_data in enumerate(np_array):  # in range(n_columns):
+        top = np.sum([bottom, np_array[i]], axis=0)
+        plt_definitions.append(plt.fill_between(x_axis_label, top, y2=bottom, step='post'))
+        bottom += np_array[i]
+
+    linestyle = ['-','--',':']
+    for i, row_data in enumerate(np_array_in):  # in range(n_columns):
+        top_in = np.sum([bottom_in, np_array_in[i]], axis=0)
+        plt_definitions_in.append(plt.plot(x_axis_label, top_in, color='k', linewidth=1.5, label=[i], linestyle=linestyle[i], drawstyle='steps-post'))
+        bottom_in += np_array_in[i]
+
+    df_out = df_out.reset_index(drop=True)
+
+    plt.xlim(left=min(x_axis_label), right=max(x_axis_label))
+    ax.set_ylabel(bus_label)
+
+    return
 
 def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
             cdict=None, line_kwa=None, bar_kwa=None, area_kwa=None,
-            inorder=None, outorder=None, smooth=False):
+            inorder=None, outorder=None,slider=None, fig=None):
     r""" Plotting a combined bar and line plot of a bus to see the fitting of
     in- and out-coming flows of the bus balance.
 
@@ -211,6 +280,7 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
         Manipulated labels to correct the unusual construction of the
         stack line plot. You can use them for further manipulations.
     """
+
     if bar_kwa is None:
         bar_kwa = {}
     if line_kwa is None:
@@ -247,14 +317,6 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
     else:
         colors = None
 
-    if smooth:
-        df_in.plot(kind='area', linewidth=0, stacked=True,
-                   ax=ax, color=colors, **area_kwa)
-    else:
-        df_in.plot(kind='bar', linewidth=0, stacked=True, width=1,
-                   ax=ax, color=colors, **bar_kwa)
-
-    # Create a line plot for all output flows
     if outorder is not None:
         df_out = rearrange_df(df_out, outorder)
     else:
@@ -262,49 +324,31 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
 
     df_out = df_out.reset_index(drop=True)
 
-    # The following changes are made to have the bottom line on top layer
-    # of all lines. Normally the bottom line is the first line that is
-    # plotted and will be on the lowest layer. This is difficult to read.
-    new_df = pd.DataFrame(index=df_out.index)
-    tmp = 0
-    for col in df_out.columns:
-        new_df[col] = df_out[col] + tmp
-        tmp = new_df[col]
-    if outorder is None:
-        new_df.sort_index(axis=1, ascending=False, inplace=True)
-    else:
-        lineorder = list(outorder)
-        lineorder.reverse()
-        new_df = new_df[lineorder]
+    stacked_bar(df, df_in,df_out,ax,bus_label)
 
-    if cdict is not None:
-        colorlist = color_from_dict(cdict, df_out)
-    else:
-        colorlist = None
+    if slider:
+        barpos = plt.axes([0.15, 0.1, 0.65, 0.03])
+        slider = Slider(barpos, 'aaa', 0, 1, valinit=0)
+        np_array = np.array(df_in.T)
+        number_of_rows = np.size(np_array, 1)
+        x_axis_label = add_last_index(df.index.tolist(), number_of_rows)
+        xmin = min(x_axis_label)
+        xmax = max(x_axis_label)
+        ymin = 0
+        ymax = max([np.sum(a) for a in df_in.values]) * 1.2
+        plt.axis([xmin, xmax, ymin, ymax])
 
-    if isinstance(colorlist, list):
-        colorlist.reverse()
+        #FixMe File "C:\Users\swehkamp\Documents\GitHub\oemof-verification\common\post_processing\plot.py", line 347, in update
+        #FiXMe  fig.canvas.draw_idle()
+        #FixMe AttributeError: 'NoneType' object has no attribute 'canvas'
+        def update(val):
+            pos = slider.val
+            width = 168
+            pos = xmin + pos * (xmax - xmin - timedelta(hours=width))
+            ax.axis([pos, pos + timedelta(hours=width), ymin, ymax])
+            fig.canvas.draw_idle()
 
-    separator = len(new_df.columns)
+        slider.on_changed(update)
 
-    if smooth:
-        new_df.plot(kind='line', ax=ax, color=colorlist, **line_kwa)
-    else:
-        new_df.plot(kind='line', ax=ax, color=colorlist,
-                    drawstyle='steps-mid', **line_kwa)
+    return
 
-    # Adapt the legend to the new order
-    handles, labels = ax.get_legend_handles_labels()
-    tmp_lab = [x for x in reversed(labels[0:separator])]
-    tmp_hand = [x for x in reversed(handles[0:separator])]
-    handles = tmp_hand + handles[separator:]
-    labels = tmp_lab + labels[separator:]
-    labels.reverse()
-    handles.reverse()
-
-    ax.legend(handles, labels)
-
-    return {
-        'handles': handles,
-        'labels': labels,
-        'ax': ax}
