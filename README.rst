@@ -1,4 +1,8 @@
-oemof's visualisation package.
+*oemof's visualisation package*   |badge|
+
+.. |badge| image:: https://github.com/oemof/oemof-visio/blob/master/docs/mit_badge.svg
+   :target: https://opensource.org/licenses/MIT
+
 
 Installation
 ============
