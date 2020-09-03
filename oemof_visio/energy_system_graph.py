@@ -1,6 +1,6 @@
 import os
 import graphviz
-import oemof
+import oemof.solph
 import logging
 
 
