@@ -253,27 +253,3 @@ class ESGraphRenderer:
     def render(self, **kwargs):
         """Call the render method of the DiGraph instance"""
         print(self.dot.render(**kwargs))
-
-
-if __name__ == "__main__":
-    from oemof.solph import Sink, Source, Transformer, Bus, Flow, EnergySystem
-    energysystem = EnergySystem()
-    bus_ac = Bus(label="AC")
-    bus_dc = Bus(label="DC")
-    wind = Source(label="wind", outputs={bus_ac: Flow()})
-    pv = Source(label="pv", outputs={bus_dc: Flow()})
-    demand_el = Sink(label="demand_el", inputs={bus_ac: Flow()})
-    storage_el = oemof.solph.components.GenericStorage(
-        label="storage_el",
-        inputs={bus_ac: Flow()},
-        outputs={bus_ac: Flow()},
-    )
-    pv_converter = Transformer(
-        label="chp_gas", inputs={bus_dc: Flow()}, outputs={bus_ac: Flow()}
-    )
-    excess_el = Sink(label="excess_el", inputs={bus_ac: Flow()})
-    energysystem.add(
-        bus_ac, bus_dc, wind, pv, demand_el, storage_el, excess_el, pv_converter
-    )
-    gr = ESGraphRenderer(energysystem)
-    gr.view()
