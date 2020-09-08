@@ -1,6 +1,11 @@
 import os
 import graphviz
-import oemof.solph
+from oemof.solph import Bus, Sink, Source, Transformer
+
+try:
+    from oemof.solph import GenericStorage
+except ModuleNotFoundError:
+    GenericStorage = NoneType
 import logging
 
 
@@ -124,17 +129,17 @@ class ESGraphRenderer:
         # draw a node for each of the energy_system's component.
         # the shape depends on the component's type.
         for nd in energy_system.nodes:
-            if isinstance(nd, oemof.solph.network.Bus):
+            if isinstance(nd, Bus):
                 self.add_bus(nd.label)
                 # keep the bus reference for drawing edges later
                 self.busses.append(nd)
-            elif isinstance(nd, oemof.solph.network.Sink):
+            elif isinstance(nd, Sink):
                 self.add_sink(nd.label)
-            elif isinstance(nd, oemof.solph.network.Source):
+            elif isinstance(nd, Source):
                 self.add_source(nd.label)
-            elif isinstance(nd, oemof.solph.network.Transformer):
+            elif isinstance(nd, Transformer):
                 self.add_transformer(nd.label)
-            elif isinstance(nd, oemof.solph.components.GenericStorage):
+            elif isinstance(nd, GenericStorage):
                 self.add_storage(nd.label)
             else:
                 logging.warning(
@@ -235,11 +240,11 @@ class ESGraphRenderer:
         b: `oemof.solph.network.Node`
             An oemof node (usually a Bus or a Component)
         """
-        if not isinstance(a, oemof.solph.network.Bus):
+        if not isinstance(a, Bus):
             a = fixed_width_text(a.label, char_num=self.txt_width)
         else:
             a = a.label
-        if not isinstance(b, oemof.solph.network.Bus):
+        if not isinstance(b, Bus):
             b = fixed_width_text(b.label, char_num=self.txt_width)
         else:
             b = b.label
