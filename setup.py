@@ -22,5 +22,6 @@ setup(
     long_description=read("README.rst"),
     packages=find_packages(),
     package_dir={"oemof_visio": "oemof_visio"},
-    install_requires=["matplotlib", "pandas", "graphviz", "oemof.solph"],
+    install_requires=["matplotlib", "pandas"],
+    extras_require={"network": ["graphviz", "oemof.network"]},
 )
