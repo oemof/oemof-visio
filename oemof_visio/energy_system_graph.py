@@ -4,10 +4,11 @@ import graphviz
 
 try:
     from oemof.network.network import Bus, Sink, Source, Transformer
-except:
+except ModuleNotFoundError:
     raise (
         ImportError,
-        "You have to install oemof.network to plot a graph...pip install oemof.network",
+        "You have to install oemof.network to plot a graph\n\n"
+        "pip install oemof.network",
     )
 
 try:
@@ -50,12 +51,12 @@ def fixed_width_text(text, char_num=10):
     # split the text in lines of `char_num` character
     split_text = []
     for i in range(n_lines):
-        split_text.append(text[(i * char_num) : ((i + 1) * char_num)])
+        split_text.append(text[(i * char_num):((i + 1) * char_num)])
 
     # I if the last line is not empty
     if n_lines > 0:
         if last_line_length > 0:
-            split_text.append(text[((i + 1) * char_num) :])
+            split_text.append(text[((i + 1) * char_num):])
         answer = "\n".join(split_text)
     else:
         answer = text
@@ -81,12 +82,14 @@ class ESGraphRenderer:
             The oemof energy stystem
 
         filepath: str
-            path, where the rendered result shall be saved, if an extension is provided, the format
-            will be automatically adapted except if the `img_format` argument is provided
+            path, where the rendered result shall be saved, if an extension
+            is provided, the format will be automatically adapted except if
+            the `img_format` argument is provided
             Default: "energy_system.gv"
 
         img_format: str
-            extension of the available image formats of graphviz (e.g "png", "svg", "pdf", ... )
+            extension of the available image formats of graphviz (e.g "png",
+            "svg", "pdf", ... )
             Default: "pdf"
 
         legend: bool
@@ -161,9 +164,12 @@ class ESGraphRenderer:
                 self.add_storage(nd.label)
             else:
                 logging.warning(
-                    "The oemof component {} of type {} is not implemented in the rendering "
-                    "method of the energy model graph drawer. It will be therefore"
-                    "rendered as an ellipse".format(nd.label, type(nd))
+                    "The oemof component {} of type {} is not implemented in "
+                    "the rendering method of the energy model graph drawer. "
+                    "It will be therefore rendered as an ellipse".format(
+                        nd.label,
+                        type(nd)
+                    )
                 )
                 self.add_component(nd.label)
 
