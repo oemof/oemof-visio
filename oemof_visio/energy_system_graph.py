@@ -145,6 +145,8 @@ class ESGraphRenderer:
         # draw a node for each of the energy_system's component.
         # the shape depends on the component's type.
         for nd in energy_system.nodes:
+            # make sur the label is a string and not a tuple
+            nd.label = str(nd.label)
             if isinstance(nd, Bus):
                 self.add_bus(nd.label)
                 # keep the bus reference for drawing edges later
