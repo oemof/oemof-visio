@@ -1,11 +1,20 @@
 import os
+
 import graphviz
-from oemof.solph import Bus, Sink, Source, Transformer
+
+try:
+    from oemof.network.network import Bus, Sink, Source, Transformer
+except:
+    raise (
+        ImportError,
+        "You have to install oemof.network to plot a graph...pip install oemof.network",
+    )
 
 try:
     from oemof.solph import GenericStorage
 except ModuleNotFoundError:
-    GenericStorage = NoneType
+    GenericStorage = None
+
 import logging
 
 
