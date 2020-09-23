@@ -57,7 +57,7 @@ class ESGraphRenderer:
     def __init__(
         self,
         energy_system=None,
-        filepath="energy_system",
+        filepath=None,
         img_format=None,
         legend=False,
         txt_width=10,
@@ -74,7 +74,7 @@ class ESGraphRenderer:
         filepath: str
             path, where the rendered result shall be saved, if an extension is provided, the format
             will be automatically adapted except if the `img_format` argument is provided
-            Default: "energy_system"
+            Default: "energy_system.gv"
 
         img_format: str
             extension of the available image formats of graphviz (e.g "png", "svg", "pdf", ... )
@@ -99,7 +99,14 @@ class ESGraphRenderer:
         -------
         None: render the generated dot graph in the filepath
         """
-        file_name, file_ext = os.path.splitext(filepath)
+
+        if filepath is not None:
+            file_name, file_ext = os.path.splitext(filepath)
+        else:
+            file_name = "energy_system"
+            file_ext = ""
+
+        kwargs.update(dict(filename=file_name))
 
         # if the `img_format` argument is not provided then the format is
         # automatically inferred from the file extension or defaults to "pdf"
@@ -109,7 +116,7 @@ class ESGraphRenderer:
             else:
                 img_format = "pdf"
 
-        self.dot = graphviz.Digraph(filename=file_name, format=img_format, **kwargs)
+        self.dot = graphviz.Digraph(format=img_format, **kwargs)
         self.txt_width = txt_width
         self.txt_fontsize = str(txt_fontsize)
         self.busses = []
