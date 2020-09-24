@@ -45,27 +45,20 @@ def fixed_width_text(text, char_num=10):
     '12\\n34\\n5'
     >>> fixed_width_text("123456")
     '123456'
+    >>> fixed_width_text("12345", 5)
+    '12345'
+    >>> fixed_width_text("", 2)
+    ''
     """
-    # total number of characters in the text
-    text_length = len(text)
     # integer number of lines of `char_num` character
-    n_lines = int(text_length / char_num)
-    # number of character in the last line
-    last_line_length = text_length % char_num
+    n_lines = math.ceil(len(text) / char_num)
 
     # split the text in lines of `char_num` character
     split_text = []
     for i in range(n_lines):
         split_text.append(text[(i * char_num):((i + 1) * char_num)])
 
-    # I if the last line is not empty
-    if n_lines > 0:
-        if last_line_length > 0:
-            split_text.append(text[((i + 1) * char_num):])
-        answer = "\n".join(split_text)
-    else:
-        answer = text
-    return answer
+    return "\n".join(split_text)
 
 
 class ESGraphRenderer:
