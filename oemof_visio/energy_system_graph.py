@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+
+"""Module to render an oemof energy model network in a graph.
+SPDX-FileCopyrightText: Pierre-Francois Duc <pierre-francois.duc@rl-institut.de>
+SPDX-FileCopyrightText: Uwe Krien <krien@uni-bremen.de>
+SPDX-FileCopyrightText: Patrik Schönfeldt
+SPDX-License-Identifier: MIT
+"""
+
 import logging
 import math
 import os
