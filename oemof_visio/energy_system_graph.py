@@ -1,22 +1,27 @@
+import logging
+import math
 import os
 
-import graphviz
+try:
+    import graphviz
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(
+        "\nYou have to install graphviz to plot a graph\n"
+        "pip install graphviz\n"
+    )
 
 try:
     from oemof.network.network import Bus, Sink, Source, Transformer
 except ModuleNotFoundError:
-    raise (
-        ImportError,
-        "You have to install oemof.network to plot a graph\n\n"
-        "pip install oemof.network",
+    raise ModuleNotFoundError(
+        "You have to install oemof.network to plot a graph\n"
+        "pip install oemof.network"
     )
 
 try:
     from oemof.solph import GenericStorage
 except ModuleNotFoundError:
     GenericStorage = None
-
-import logging
 
 
 def fixed_width_text(text, char_num=10):
