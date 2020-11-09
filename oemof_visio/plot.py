@@ -125,7 +125,7 @@ def set_datetime_ticks(ax, dates, tick_distance=None, number_autoticks=3,
                   minor=False)
     ax.set_xticklabels(
         [item.strftime(date_format)
-         for item in dates.tolist()[0::tick_distance]],
+         for item in dates.tolist()[0 + offset::tick_distance]],
         rotation=0, minor=False)
     if tight:
         ax.set_xlim(0, int(len(dates)))
