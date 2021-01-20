@@ -11,21 +11,18 @@ import logging
 import math
 import os
 
+
 try:
     import graphviz
+    GRAPHVIZ_MODULE = True
 except ModuleNotFoundError:
-    raise ModuleNotFoundError(
-        "\nYou have to install graphviz to plot a graph\n"
-        "pip install graphviz\n"
-    )
+    GRAPHVIZ_MODULE = False
 
 try:
     from oemof.network.network import Bus, Sink, Source, Transformer
+    NETWORK_MODULE = True
 except ModuleNotFoundError:
-    raise ModuleNotFoundError(
-        "You have to install oemof.network to plot a graph\n"
-        "pip install oemof.network"
-    )
+    NETWORK_MODULE = False
 
 try:
     from oemof.solph import GenericStorage
@@ -118,6 +115,16 @@ class ESGraphRenderer:
         -------
         None: render the generated dot graph in the filepath
         """
+        missing_modules = []
+        if NETWORK_MODULE is False or GRAPHVIZ_MODULE is False:
+            if NETWORK_MODULE is False:
+                missing_modules.append("oemof.network")
+            if GRAPHVIZ_MODULE is False:
+                missing_modules.append("graphviz")
+            raise ModuleNotFoundError(
+                "You have to install the following packages to plot a graph\n"
+                "pip install {0}".format(" ".join(missing_modules))
+            )
 
         if filepath is not None:
             file_name, file_ext = os.path.splitext(filepath)
