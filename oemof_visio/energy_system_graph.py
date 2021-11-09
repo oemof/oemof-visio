@@ -25,7 +25,7 @@ except ModuleNotFoundError:
     NETWORK_MODULE = False
 
 try:
-    from oemof.solph import GenericStorage
+    from oemof.solph.components import GenericStorage
 except ModuleNotFoundError:
     GenericStorage = None
 
