@@ -36,6 +36,8 @@ COLOR_SINK = "#FFD6E0"
 COLOR_STORAGE = "#90F1EF"
 COLOR_CONVERTER = "#7BF1A8"
 
+
+import plotly.graph_objs as go
 def fixed_width_text(text, char_num=10):
     """Add linebreaks every char_num characters in a given text.
 
@@ -335,3 +337,84 @@ class ESGraphRenderer:
     def pipe(self, **kwargs):
         """Call the pipe method of the DiGraph instance"""
         self.dot.pipe(**kwargs)
+
+    def sankey(self, results, ts=None):
+        """Return a dict to a plotly sankey diagram"""
+        busses = []
+
+        labels = []
+        sources = []
+        targets = []
+        values = []
+
+        # bus_data.update({bus: solph.views.node(results_main, bus)})
+
+        # draw a node for each of the network's component. The shape depends on the component's type
+        for nd in self.energy_system.nodes:
+            if isinstance(nd, Bus):
+
+                # keep the bus reference for drawing edges later
+                bus = nd
+                busses.append(bus)
+
+                bus_label = bus.label
+
+                labels.append(nd.label)
+
+                flows = view_node(results, bus_label)["sequences"]
+
+                # draw an arrow from the component to the bus
+                for component in bus.inputs:
+                    if component.label not in labels:
+                        labels.append(component.label)
+
+                    sources.append(labels.index(component.label))
+                    targets.append(labels.index(bus_label))
+
+                    val = flows[((component.label, bus_label), "flow")].sum()
+                    if ts is not None:
+                        val = flows[((component.label, bus_label), "flow")][ts]
+                    # if val == 0:
+                    #     val = 1
+                    values.append(val)
+
+                for component in bus.outputs:
+                    # draw an arrow from the bus to the component
+                    if component.label not in labels:
+                        labels.append(component.label)
+
+                    sources.append(labels.index(bus_label))
+                    targets.append(labels.index(component.label))
+
+                    val = flows[((bus_label, component.label), "flow")].sum()
+                    if ts is not None:
+                        val = flows[((bus_label, component.label), "flow")][ts]
+                    # if val == 0:
+                    #     val = 1
+                    values.append(val)
+
+        fig = go.Figure(
+            data=[
+                go.Sankey(
+                    node=dict(
+                        pad=15,
+                        thickness=20,
+                        line=dict(color="black", width=0.5),
+                        label=labels,
+                        hovertemplate="Node has total value %{value}<extra></extra>",
+                        color="blue",
+                    ),
+                    link=dict(
+                        source=sources,  # indices correspond to labels, eg A1, A2, A2, B1, ...
+                        target=targets,
+                        value=values,
+                        hovertemplate="Link from node %{source.label}<br />"
+                        + "to node%{target.label}<br />has value %{value}"
+                        + "<br />and data <extra></extra>",
+                    ),
+                )
+            ]
+        )
+
+        fig.update_layout(title_text="Basic Sankey Diagram", font_size=10)
+        return fig.to_dict()
