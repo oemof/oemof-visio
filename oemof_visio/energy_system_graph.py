@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 import logging
 import math
 import os
-
+import plotly.graph_objs as go
 
 try:
     import graphviz
@@ -48,7 +48,7 @@ COLOR_STORAGE = "#90F1EF"
 COLOR_CONVERTER = "#7BF1A8"
 
 
-import plotly.graph_objs as go
+
 
 
 def fixed_width_text(text, char_num=10):
@@ -83,7 +83,7 @@ def fixed_width_text(text, char_num=10):
     # split the text in lines of `char_num` character
     split_text = []
     for i in range(n_lines):
-        split_text.append(text[(i * char_num) : ((i + 1) * char_num)])
+        split_text.append(text[(i * char_num): ((i + 1) * char_num)])
 
     return "\n".join(split_text)
 
@@ -313,7 +313,8 @@ class ESGraphRenderer:
         else:
             dot = subgraph
         dot.node(
-            fixed_width_text(label, char_num=self.txt_width), fontsize=self.txt_fontsize
+            fixed_width_text(label, char_num=self.txt_width),
+            fontsize=self.txt_fontsize
         )
 
     def connect(self, a, b):
@@ -362,7 +363,8 @@ class ESGraphRenderer:
 
         # bus_data.update({bus: solph.views.node(results_main, bus)})
 
-        # draw a node for each of the network's component. The shape depends on the component's type
+        # draw a node for each of the network's component.
+        # The shape depends on the component's type
         for nd in self.energy_system.nodes:
             if isinstance(nd, Bus):
 
