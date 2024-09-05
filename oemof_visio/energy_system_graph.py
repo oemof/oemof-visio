@@ -14,19 +14,30 @@ import os
 
 try:
     import graphviz
+
     GRAPHVIZ_MODULE = True
 except ModuleNotFoundError:
     GRAPHVIZ_MODULE = False
 
 try:
     from oemof.network.network import Bus, Sink, Source, Transformer
+
     NETWORK_MODULE = True
 except ModuleNotFoundError:
     NETWORK_MODULE = False
 # new with oemof-solph 0.5.2
 from oemof.solph.buses._bus import Bus
+
 try:
-    from oemof.solph.components import GenericStorage, Sink, Source, Converter, OffsetConverter, ExtractionTurbineCHP, GenericCHP
+    from oemof.solph.components import (
+        GenericStorage,
+        Sink,
+        Source,
+        Converter,
+        OffsetConverter,
+        ExtractionTurbineCHP,
+        GenericCHP,
+    )
     from oemof.solph.views import node as view_node
 except ModuleNotFoundError:
     GenericStorage = None
@@ -38,6 +49,8 @@ COLOR_CONVERTER = "#7BF1A8"
 
 
 import plotly.graph_objs as go
+
+
 def fixed_width_text(text, char_num=10):
     """Add linebreaks every char_num characters in a given text.
 
@@ -70,7 +83,7 @@ def fixed_width_text(text, char_num=10):
     # split the text in lines of `char_num` character
     split_text = []
     for i in range(n_lines):
-        split_text.append(text[(i * char_num):((i + 1) * char_num)])
+        split_text.append(text[(i * char_num) : ((i + 1) * char_num)])
 
     return "\n".join(split_text)
 
@@ -176,7 +189,9 @@ class ESGraphRenderer:
             if isinstance(nd, Bus):
                 self.add_bus(nd.label)
                 # keep the bus reference for drawing edges later
-                self.busses.append(nd) # TODO here get the info from inputs and outputs and adapt the labels
+                self.busses.append(
+                    nd
+                )  # TODO here get the info from inputs and outputs and adapt the labels
             elif isinstance(nd, Sink):
                 self.add_sink(nd.label)
             elif isinstance(nd, Source):
@@ -198,8 +213,7 @@ class ESGraphRenderer:
                     "The oemof component {} of type {} is not implemented in "
                     "the rendering method of the energy model graph drawer. "
                     "It will be therefore rendered as an ellipse".format(
-                        nd.label,
-                        type(nd)
+                        nd.label, type(nd)
                     )
                 )
                 self.add_component(nd.label)
@@ -277,7 +291,7 @@ class ESGraphRenderer:
             fontsize=self.txt_fontsize,
             style="filled",
             fillcolor="yellow;0.1:blue",
-            #color="magenta",
+            # color="magenta",
         )
 
     def add_storage(self, label="Storage", subgraph=None):
@@ -299,8 +313,7 @@ class ESGraphRenderer:
         else:
             dot = subgraph
         dot.node(
-            fixed_width_text(label, char_num=self.txt_width),
-            fontsize=self.txt_fontsize,
+            fixed_width_text(label, char_num=self.txt_width), fontsize=self.txt_fontsize
         )
 
     def connect(self, a, b):
