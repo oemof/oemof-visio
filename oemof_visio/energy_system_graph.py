@@ -31,6 +31,10 @@ try:
 except ModuleNotFoundError:
     GenericStorage = None
 
+COLOR_SOURCE = "#A4ADFB"
+COLOR_SINK = "#FFD6E0"
+COLOR_STORAGE = "#90F1EF"
+COLOR_CONVERTER = "#7BF1A8"
 
 def fixed_width_text(text, char_num=10):
     """Add linebreaks every char_num characters in a given text.
@@ -232,6 +236,7 @@ class ESGraphRenderer:
         dot.node(
             fixed_width_text(label, char_num=self.txt_width),
             shape="trapezium",
+            color=COLOR_SINK,
             fontsize=self.txt_fontsize,
         )
 
@@ -243,6 +248,7 @@ class ESGraphRenderer:
         dot.node(
             fixed_width_text(label, char_num=self.txt_width),
             shape="invtrapezium",
+            color=COLOR_SOURCE,
             fontsize=self.txt_fontsize,
         )
 
@@ -254,6 +260,7 @@ class ESGraphRenderer:
         dot.node(
             fixed_width_text(label, char_num=self.txt_width),
             shape="rectangle",
+            color=COLOR_CONVERTER,
             fontsize=self.txt_fontsize,
         )
 
@@ -280,6 +287,7 @@ class ESGraphRenderer:
             fixed_width_text(label, char_num=self.txt_width),
             shape="rectangle",
             style="rounded",
+            color=COLOR_STORAGE,
             fontsize=self.txt_fontsize,
         )
 
@@ -322,6 +330,7 @@ class ESGraphRenderer:
     def render(self, **kwargs):
         """Call the render method of the DiGraph instance"""
         print(self.dot.render(**kwargs))
+        return self.dot
 
     def pipe(self, **kwargs):
         """Call the pipe method of the DiGraph instance"""
