@@ -23,9 +23,11 @@ try:
     NETWORK_MODULE = True
 except ModuleNotFoundError:
     NETWORK_MODULE = False
-
+# new with oemof-solph 0.5.2
+from oemof.solph.buses._bus import Bus
 try:
-    from oemof.solph.components import GenericStorage
+    from oemof.solph.components import GenericStorage, Sink, Source, Converter, OffsetConverter, ExtractionTurbineCHP, GenericCHP
+    from oemof.solph.views import node as view_node
 except ModuleNotFoundError:
     GenericStorage = None
 
@@ -126,6 +128,7 @@ class ESGraphRenderer:
                 "pip install {0}".format(" ".join(missing_modules))
             )
 
+        self.energy_system = energy_system
         if filepath is not None:
             file_name, file_ext = os.path.splitext(filepath)
         else:
@@ -163,15 +166,23 @@ class ESGraphRenderer:
         # the shape depends on the component's type.
         for nd in energy_system.nodes:
             # make sur the label is a string and not a tuple
-            nd.label = str(nd.label)
+            label = str(nd.label)
             if isinstance(nd, Bus):
                 self.add_bus(nd.label)
                 # keep the bus reference for drawing edges later
-                self.busses.append(nd)
+                self.busses.append(nd) # TODO here get the info from inputs and outputs and adapt the labels
             elif isinstance(nd, Sink):
                 self.add_sink(nd.label)
             elif isinstance(nd, Source):
                 self.add_source(nd.label)
+            elif isinstance(nd, OffsetConverter):
+                self.add_transformer(nd.label)
+            elif isinstance(nd, GenericCHP):
+                self.add_chp(nd.label)
+            elif isinstance(nd, ExtractionTurbineCHP):
+                self.add_chp(nd.label)
+            elif isinstance(nd, Converter):
+                self.add_transformer(nd.label)
             elif isinstance(nd, Transformer):
                 self.add_transformer(nd.label)
             elif isinstance(nd, GenericStorage):
@@ -210,6 +221,7 @@ class ESGraphRenderer:
             height="0.3",
             style="filled",
             color="lightgrey",
+            tooltip=label,
         )
 
     def add_sink(self, label="Sink", subgraph=None):
@@ -243,6 +255,20 @@ class ESGraphRenderer:
             fixed_width_text(label, char_num=self.txt_width),
             shape="rectangle",
             fontsize=self.txt_fontsize,
+        )
+
+    def add_chp(self, label="CHP", subgraph=None):
+        if subgraph is None:
+            dot = self.dot
+        else:
+            dot = subgraph
+        dot.node(
+            fixed_width_text(label, char_num=self.txt_width),
+            shape="rectangle",
+            fontsize=self.txt_fontsize,
+            style="filled",
+            fillcolor="yellow;0.1:blue",
+            #color="magenta",
         )
 
     def add_storage(self, label="Storage", subgraph=None):
