@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools", "pandas", "matplotlib", "plotly", "oemof.solph"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["oemof_visio"]
+[project]
+name = "oemof-visio"
+authors = [
+  { name="oemof developing group", email="oemof@rl-institut.de"},
+]
+description = "A package that contains postprocessing and visualisation tools for oemof-solph models"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "matplotlib",
+    "pandas",
+    "plotly"
+]
+dynamic = ["version", "readme"]
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst"]}
+version = {attr = "oemof_visio.version"}
+
+
+[project.optional-dependencies]
+network = [
+    "graphviz",
+    "oemof.network"
+]
+[project.urls]
+Homepage = "https://github.com/oemof/oemof-visio"
+Issues = "https://github.com/oemof/oemof-visio/issues"
