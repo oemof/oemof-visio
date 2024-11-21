@@ -48,9 +48,6 @@ COLOR_STORAGE = "#90F1EF"
 COLOR_CONVERTER = "#7BF1A8"
 
 
-
-
-
 def fixed_width_text(text, char_num=10):
     """Add linebreaks every char_num characters in a given text.
 
@@ -83,7 +80,7 @@ def fixed_width_text(text, char_num=10):
     # split the text in lines of `char_num` character
     split_text = []
     for i in range(n_lines):
-        split_text.append(text[(i * char_num): ((i + 1) * char_num)])
+        split_text.append(text[(i * char_num) : ((i + 1) * char_num)])
 
     return "\n".join(split_text)
 
@@ -97,7 +94,7 @@ class ESGraphRenderer:
         legend=False,
         txt_width=10,
         txt_fontsize=10,
-        **kwargs
+        **kwargs,
     ):
         """Render an oemof energy system using graphviz.
 
@@ -313,8 +310,7 @@ class ESGraphRenderer:
         else:
             dot = subgraph
         dot.node(
-            fixed_width_text(label, char_num=self.txt_width),
-            fontsize=self.txt_fontsize
+            fixed_width_text(label, char_num=self.txt_width), fontsize=self.txt_fontsize
         )
 
     def connect(self, a, b):

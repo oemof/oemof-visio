@@ -54,13 +54,13 @@ def rearrange_df(df, order, quiet=False):
     missing = [x for x in list(cols) if x not in set(order)]
     if len(missing) > 0 and not quiet:
         logging.warning(
-            "Columns that are not part of the order list are removed: " +
-            str(missing))
+            "Columns that are not part of the order list are removed: " + str(missing)
+        )
     return df[neworder]
 
 
 def color_from_dict(colordict, df):
-    r""" Method to convert a dictionary containing the components and its
+    r"""Method to convert a dictionary containing the components and its
     colors to a color list that can be directly used with the color
     parameter of the pandas plotting method.
 
@@ -77,9 +77,8 @@ def color_from_dict(colordict, df):
     list
         Containing the colors of all components of the subset attribute
     """
-    tmplist = list(
-        map(colordict.get, list(df.columns)))
-    tmplist = ['#ff00f0' if v is None else v for v in tmplist]
+    tmplist = list(map(colordict.get, list(df.columns)))
+    tmplist = ["#ff00f0" if v is None else v for v in tmplist]
     if len(tmplist) == 1:
         colorlist = tmplist[0]
     else:
@@ -88,9 +87,16 @@ def color_from_dict(colordict, df):
     return colorlist
 
 
-def set_datetime_ticks(ax, dates, tick_distance=None, number_autoticks=3,
-                       date_format='%d-%m-%Y %H:%M', offset=0, tight=False):
-    r""" Set configurable ticks for the time axis. One can choose the
+def set_datetime_ticks(
+    ax,
+    dates,
+    tick_distance=None,
+    number_autoticks=3,
+    date_format="%d-%m-%Y %H:%M",
+    offset=0,
+    tight=False,
+):
+    r"""Set configurable ticks for the time axis. One can choose the
     number of ticks or the distance between ticks and the format.
 
     Parameters
@@ -121,12 +127,15 @@ def set_datetime_ticks(ax, dates, tick_distance=None, number_autoticks=3,
     if tick_distance is None:
         tick_distance = int(len(dates) / number_autoticks) - 1
 
-    ax.set_xticks(range(0 + offset, len(dates) - 1, tick_distance),
-                  minor=False)
+    ax.set_xticks(range(0 + offset, len(dates) - 1, tick_distance), minor=False)
     ax.set_xticklabels(
-        [item.strftime(date_format)
-         for item in dates.tolist()[0 + offset::tick_distance]],
-        rotation=0, minor=False)
+        [
+            item.strftime(date_format)
+            for item in dates.tolist()[0 + offset :: tick_distance]
+        ],
+        rotation=0,
+        minor=False,
+    )
     if tight:
         ax.set_xlim(0, int(len(dates)))
     return ax
@@ -148,16 +157,26 @@ def divide_bus_columns(bus_label, columns):
 
     """
     return {
-        'in_cols': [
-            c for c in columns if (len(c[0]) > 1 and c[0][1] == bus_label)],
-        'out_cols': [
-            c for c in columns if (len(c[0]) > 1 and c[0][0] == bus_label)]}
+        "in_cols": [c for c in columns if (len(c[0]) > 1 and c[0][1] == bus_label)],
+        "out_cols": [c for c in columns if (len(c[0]) > 1 and c[0][0] == bus_label)],
+    }
 
 
-def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
-            cdict=None, line_kwa=None, bar_kwa=None, area_kwa=None,
-            inorder=None, outorder=None, smooth=False):
-    r""" Plotting a combined bar and line plot of a bus to see the fitting of
+def io_plot(
+    bus_label=None,
+    df=None,
+    df_in=None,
+    df_out=None,
+    ax=None,
+    cdict=None,
+    line_kwa=None,
+    bar_kwa=None,
+    area_kwa=None,
+    inorder=None,
+    outorder=None,
+    smooth=False,
+):
+    r"""Plotting a combined bar and line plot of a bus to see the fitting of
     in- and out-coming flows of the bus balance.
 
     One can either pass the label of the bus and a DataFrame with all flows or
@@ -229,8 +248,8 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
 
     if df is not None:
         divided_columns = divide_bus_columns(bus_label, df.columns)
-        in_cols = divided_columns['in_cols']
-        out_cols = divided_columns['out_cols']
+        in_cols = divided_columns["in_cols"]
+        out_cols = divided_columns["out_cols"]
         df_in = df[in_cols].copy()
         df_out = df[out_cols].copy()
 
@@ -248,11 +267,19 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
         colors = None
 
     if smooth:
-        df_in.plot(kind='area', linewidth=0, stacked=True,
-                   ax=ax, color=colors, **area_kwa)
+        df_in.plot(
+            kind="area", linewidth=0, stacked=True, ax=ax, color=colors, **area_kwa
+        )
     else:
-        df_in.plot(kind='bar', linewidth=0, stacked=True, width=1,
-                   ax=ax, color=colors, **bar_kwa)
+        df_in.plot(
+            kind="bar",
+            linewidth=0,
+            stacked=True,
+            width=1,
+            ax=ax,
+            color=colors,
+            **bar_kwa,
+        )
 
     # Create a line plot for all output flows
     if outorder is not None:
@@ -288,10 +315,11 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
     separator = len(new_df.columns)
 
     if smooth:
-        new_df.plot(kind='line', ax=ax, color=colorlist, **line_kwa)
+        new_df.plot(kind="line", ax=ax, color=colorlist, **line_kwa)
     else:
-        new_df.plot(kind='line', ax=ax, color=colorlist,
-                    drawstyle='steps-mid', **line_kwa)
+        new_df.plot(
+            kind="line", ax=ax, color=colorlist, drawstyle="steps-mid", **line_kwa
+        )
 
     # Adapt the legend to the new order
     handles, labels = ax.get_legend_handles_labels()
@@ -304,7 +332,4 @@ def io_plot(bus_label=None, df=None, df_in=None, df_out=None, ax=None,
 
     ax.legend(handles, labels)
 
-    return {
-        'handles': handles,
-        'labels': labels,
-        'ax': ax}
+    return {"handles": handles, "labels": labels, "ax": ax}
