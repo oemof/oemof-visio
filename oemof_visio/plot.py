@@ -54,7 +54,8 @@ def rearrange_df(df, order, quiet=False):
     missing = [x for x in list(cols) if x not in set(order)]
     if len(missing) > 0 and not quiet:
         logging.warning(
-            "Columns that are not part of the order list are removed: " + str(missing)
+            "Columns that are not part of the order list are removed: "
+            + str(missing)
         )
     return df[neworder]
 
@@ -127,7 +128,9 @@ def set_datetime_ticks(
     if tick_distance is None:
         tick_distance = int(len(dates) / number_autoticks) - 1
 
-    ax.set_xticks(range(0 + offset, len(dates) - 1, tick_distance), minor=False)
+    ax.set_xticks(
+        range(0 + offset, len(dates) - 1, tick_distance), minor=False
+    )
     ax.set_xticklabels(
         [
             item.strftime(date_format)
@@ -157,8 +160,12 @@ def divide_bus_columns(bus_label, columns):
 
     """
     return {
-        "in_cols": [c for c in columns if (len(c[0]) > 1 and c[0][1] == bus_label)],
-        "out_cols": [c for c in columns if (len(c[0]) > 1 and c[0][0] == bus_label)],
+        "in_cols": [
+            c for c in columns if (len(c[0]) > 1 and c[0][1] == bus_label)
+        ],
+        "out_cols": [
+            c for c in columns if (len(c[0]) > 1 and c[0][0] == bus_label)
+        ],
     }
 
 
@@ -268,7 +275,12 @@ def io_plot(
 
     if smooth:
         df_in.plot(
-            kind="area", linewidth=0, stacked=True, ax=ax, color=colors, **area_kwa
+            kind="area",
+            linewidth=0,
+            stacked=True,
+            ax=ax,
+            color=colors,
+            **area_kwa,
         )
     else:
         df_in.plot(
@@ -318,7 +330,11 @@ def io_plot(
         new_df.plot(kind="line", ax=ax, color=colorlist, **line_kwa)
     else:
         new_df.plot(
-            kind="line", ax=ax, color=colorlist, drawstyle="steps-mid", **line_kwa
+            kind="line",
+            ax=ax,
+            color=colorlist,
+            drawstyle="steps-mid",
+            **line_kwa,
         )
 
     # Adapt the legend to the new order

@@ -310,7 +310,8 @@ class ESGraphRenderer:
         else:
             dot = subgraph
         dot.node(
-            fixed_width_text(label, char_num=self.txt_width), fontsize=self.txt_fontsize
+            fixed_width_text(label, char_num=self.txt_width),
+            fontsize=self.txt_fontsize,
         )
 
     def connect(self, a, b):
