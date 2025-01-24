@@ -74,6 +74,7 @@ Sankey diagramm
 To produce a sankey diagramm from the raw oemof-solph results you can use this code snippet into your own model file
 
 .. code:: python
+
     import plotly.io as pio
 
     from oemof_visio import ESGraphRenderer
