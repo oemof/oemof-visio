@@ -83,3 +83,4 @@ To produce a sankey diagramm from the raw oemof-solph results you can use this c
     results = solph.processing.results(model)
     fig_dict = esgr.sankey(results)
     pio.show(fig_dict)
+
