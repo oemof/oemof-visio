@@ -1,3 +1,9 @@
+__version__ = "0.0.1"
+
 from . import plot
 from .energy_system_graph import ESGraphRenderer
-from ._version import __version__ as version
+
+__all__ = [
+    "plot",
+    "ESGraphRenderer",
+]
