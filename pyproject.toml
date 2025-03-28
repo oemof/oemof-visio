@@ -7,9 +7,10 @@ packages = ["oemof_visio"]
 [project]
 name = "oemof-visio"
 authors = [
-  { name="oemof developing group", email="oemof@rl-institut.de"},
+  { name="oemof developing group", email="info@oemof.org"},
 ]
-description = "A package that contains postprocessing and visualisation tools for oemof-solph models"
+description = "Postprocessing and visualisation tools for oemof-solph models"
+readme = "README.rst"
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -21,11 +22,7 @@ dependencies = [
     "pandas",
     "plotly"
 ]
-dynamic = ["version", "readme"]
-
-[tool.setuptools.dynamic]
-readme = {file = ["README.rst"]}
-version = {attr = "oemof_visio.version"}
+dynamic = ["version"]
 
 
 [project.optional-dependencies]
