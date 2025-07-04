@@ -3,9 +3,10 @@ requires = ["setuptools", "pandas", "matplotlib", "plotly", "oemof.solph"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["oemof_visio"]
+package-dir = {"" = "src"}
+packages = ["oemof.visio"]
 [project]
-name = "oemof-visio"
+name = "oemof.visio"
 authors = [
   { name="oemof developing group", email="info@oemof.org"},
 ]
@@ -14,7 +15,6 @@ readme = "README.rst"
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 dependencies = [
@@ -23,13 +23,15 @@ dependencies = [
     "plotly"
 ]
 dynamic = ["version"]
+license = "MIT"
 
 
 [project.optional-dependencies]
 network = [
     "graphviz",
-    "oemof.network"
+    "oemof.network",
 ]
+
 [project.urls]
 Homepage = "https://github.com/oemof/oemof-visio"
 Issues = "https://github.com/oemof/oemof-visio/issues"
