@@ -9,6 +9,7 @@ Installation
 
 Use pypi to install the latest version.
 You can install the version just to plot graphs on oemof-solph results with
+
 .. code:: bash
 
   pip install git+https://github.com/oemof/oemof_visio.git
