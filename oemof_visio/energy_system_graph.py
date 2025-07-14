@@ -242,7 +242,7 @@ class ESGraphRenderer:
                         nd.label, type(nd)
                     )
                 )
-                self.add_component(nd.label)
+                self.add_component(label, subgraph=subgraph)
 
         # draw the edges between the nodes based on each bus inputs/outputs
         for bus in busses:
@@ -368,13 +368,13 @@ class ESGraphRenderer:
             An oemof node (usually a Bus or a Component)
         """
         if not isinstance(a, Bus):
-            a = fixed_width_text(a.label, char_num=self.txt_width)
+            a = fixed_width_text(str(a.label), char_num=self.txt_width)
         else:
-            a = a.label
+            a = str(a.label)
         if not isinstance(b, Bus):
-            b = fixed_width_text(b.label, char_num=self.txt_width)
+            b = fixed_width_text(str(b.label), char_num=self.txt_width)
         else:
-            b = b.label
+            b = str(b.label)
 
         self.dot.edge(a, b)
 
@@ -405,6 +405,7 @@ class ESGraphRenderer:
         # draw a node for each of the network's component.
         # The shape depends on the component's type
         for nd in self.energy_system.nodes:
+            label=str(nd.label)
             if isinstance(nd, Bus):
 
                 # keep the bus reference for drawing edges later
@@ -413,7 +414,7 @@ class ESGraphRenderer:
 
                 bus_label = bus.label
 
-                labels.append(nd.label)
+                labels.append(label)
 
                 flows = view_node(results, bus_label)["sequences"]
 
