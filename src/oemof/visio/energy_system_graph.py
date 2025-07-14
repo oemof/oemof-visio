@@ -385,7 +385,7 @@ class ESGraphRenderer:
 
     def render(self, **kwargs):
         """Call the render method of the DiGraph instance"""
-        print(self.dot.render(**kwargs))
+        print(self.dot.render(cleanup=True,**kwargs))
         return self.dot
 
     def pipe(self, **kwargs):
