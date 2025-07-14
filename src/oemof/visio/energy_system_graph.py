@@ -187,6 +187,28 @@ class ESGraphRenderer:
 
     def add_components(self, components, subgraph=None):
 
+        # TODO when subnetworks are nested one need to know which one is the deepest and start with this one
+        subnetworks = [n for n in components if isinstance(n, SubNetwork)]
+        atomicnodes = [n for n in components if
+                       not isinstance(n.label, SubNetworkLabel) and n not in subnetworks]
+        subnodes = [n for n in components if isinstance(n.label, SubNetworkLabel)]
+
+        print("Subnetworks : ", ", ".join([str(n.label) for n in subnetworks]))
+        print("Atomicnodes : ", ", ".join([str(n.label) for n in atomicnodes]))
+        print("Subnodes : ", ", ".join([str(n.label) for n in subnodes]))
+
+        # draw the subnetworks recursively
+        if subnetworks:
+            for sn in subnetworks:
+                self.add_subnetwork(sn, subgraph=subgraph)
+
+        # TODO this should prevent the double drawing of components
+        if atomicnodes:
+            components_to_add = atomicnodes
+        else:
+            components_to_add = subnodes
+
+        for nd in components_to_add:
             # make sur the label is a string and not a tuple
             label = str(nd.label)
             if isinstance(nd, Bus):
