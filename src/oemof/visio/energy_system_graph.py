@@ -208,6 +208,8 @@ class ESGraphRenderer:
         else:
             components_to_add = subnodes
 
+        busses = []
+
         for nd in components_to_add:
             # make sur the label is a string and not a tuple
             label = str(nd.label)
@@ -243,13 +245,15 @@ class ESGraphRenderer:
                 self.add_component(nd.label)
 
         # draw the edges between the nodes based on each bus inputs/outputs
-        for bus in self.busses:
+        for bus in busses:
             for component in bus.inputs:
                 # draw an arrow from the component to the bus
                 self.connect(component, bus)
             for component in bus.outputs:
                 # draw an arrow from the bus to the component
                 self.connect(bus, component)
+        self.busses.extend(busses)
+
     def add_subnetwork(self,sn, subgraph=None):
         if subgraph is None:
             dot = self.dot
