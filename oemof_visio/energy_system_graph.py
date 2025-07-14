@@ -28,6 +28,8 @@ except ModuleNotFoundError:
 # new with oemof-solph 0.5.2
 from oemof.solph.buses._bus import Bus
 
+from oemof.network.network.nodes import SubNetwork, SubNetworkLabel
+
 try:
     from oemof.solph.components import (
         GenericStorage,
@@ -226,6 +228,18 @@ class ESGraphRenderer:
             for component in bus.outputs:
                 # draw an arrow from the bus to the component
                 self.connect(bus, component)
+    def add_subnetwork(self,sn, subgraph=None):
+        if subgraph is None:
+            dot = self.dot
+        else:
+            dot = subgraph
+        with dot.subgraph(name="cluster_" + str(sn.label)) as c:
+            # color of the box
+            c.attr(color='black')
+            # title of the box
+            c.attr(label=str(sn.label))
+            self.add_components(sn.subnodes, subgraph=c)
+
 
     def add_bus(self, label="Bus", subgraph=None):
         if subgraph is None:
