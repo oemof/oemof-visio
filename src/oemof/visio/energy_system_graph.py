@@ -180,31 +180,34 @@ class ESGraphRenderer:
 
         # draw a node for each of the energy_system's component.
         # the shape depends on the component's type.
-        for nd in energy_system.nodes:
+
+        self.add_components(energy_system.nodes)
+
+    def add_components(self, components, subgraph=None):
+
             # make sur the label is a string and not a tuple
             label = str(nd.label)
             if isinstance(nd, Bus):
-                self.add_bus(nd.label)
+                self.add_bus(label, subgraph=subgraph)
                 # keep the bus reference for drawing edges later
-                self.busses.append(
-                    nd
-                )  # TODO here get the info from inputs and outputs and adapt the labels
+                # TODO here get the info from inputs and outputs and adapt the labels
+                busses.append(nd)
             elif isinstance(nd, Sink):
-                self.add_sink(nd.label)
+                self.add_sink(label, subgraph=subgraph)
             elif isinstance(nd, Source):
-                self.add_source(nd.label)
+                self.add_source(label, subgraph=subgraph)
             elif isinstance(nd, OffsetConverter):
-                self.add_transformer(nd.label)
+                self.add_transformer(label, subgraph=subgraph)
             elif isinstance(nd, GenericCHP):
-                self.add_chp(nd.label)
+                self.add_chp(label, subgraph=subgraph)
             elif isinstance(nd, ExtractionTurbineCHP):
-                self.add_chp(nd.label)
+                self.add_chp(label, subgraph=subgraph)
             elif isinstance(nd, Converter):
-                self.add_transformer(nd.label)
+                self.add_transformer(label, subgraph=subgraph)
             elif isinstance(nd, Transformer):
-                self.add_transformer(nd.label)
+                self.add_transformer(label, subgraph=subgraph)
             elif isinstance(nd, GenericStorage):
-                self.add_storage(nd.label)
+                self.add_storage(label, subgraph=subgraph)
             else:
                 logging.warning(
                     "The oemof component {} of type {} is not implemented in "
