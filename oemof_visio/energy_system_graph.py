@@ -28,7 +28,7 @@ except ModuleNotFoundError:
 # new with oemof-solph 0.5.2
 from oemof.solph.buses._bus import Bus
 
-from oemof.network.network.nodes import SubNetwork, SubNetworkLabel
+from oemof.network.network.nodes import SubNetwork, SubNetworkLabel, Node
 
 try:
     from oemof.solph.components import (
@@ -189,8 +189,7 @@ class ESGraphRenderer:
 
         # TODO when subnetworks are nested one need to know which one is the deepest and start with this one
         subnetworks = [n for n in components if isinstance(n, SubNetwork)]
-        atomicnodes = [n for n in components if
-                       not isinstance(n.label, SubNetworkLabel) and n not in subnetworks]
+        atomicnodes = [n for n in components if isinstance(n,Node)]
         subnodes = [n for n in components if isinstance(n.label, SubNetworkLabel)]
 
         print("Subnetworks : ", ", ".join([str(n.label) for n in subnetworks]))
