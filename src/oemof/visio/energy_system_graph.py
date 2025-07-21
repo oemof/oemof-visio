@@ -183,6 +183,52 @@ class ESGraphRenderer:
         # draw a node for each of the energy_system's component.
         # the shape depends on the component's type.
 
+        def parent_counter(nnode, counter=0):
+            """Assign a depth to a NetworkNode
+
+            For each parent above it, a NetworkNode gets one level deeper
+
+            Parameters
+            ----------
+            nnode: NetworkNode instance
+            counter: int, default 0
+
+            Returns
+            -------
+            the depth of the given NetworkNode
+
+            """
+            if hasattr(nnode.label, "parent"):
+                return parent_counter(nnode.label.parent, counter + 1)
+            else:
+                return counter
+
+        def component_depth(nnodes):
+            """Assign a depth for each nodes in a NetworkNodes list
+
+            Parameters
+            ----------
+            nnodes, list of NetworkNodes
+
+            Returns
+            -------
+            A dict mapping the depth of each NetworkNode instance provided in the list of NetworkNodes
+            """
+            depth_mapping = {}
+            for n in nnodes:
+                depth_mapping[n] = parent_counter(n)
+            return depth_mapping
+
+        component_depth = component_depth(energy_system.nodes)
+        component_per_depth = {}
+        for key, value in component_depth.items():
+            component_per_depth.setdefault(value, []).append(key)
+        print(component_depth)
+        print(component_per_depth)
+
+        # TODO add directly the component with the depth information from component_per_depth,
+        #  with the option to set a depth limit: all depth below the limit will then be replaced by a simple node
+
         self.add_components(energy_system.nodes)
 
     def add_components(self, components, subgraph=None):
