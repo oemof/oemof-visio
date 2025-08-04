@@ -85,6 +85,35 @@ def fixed_width_text(text, char_num=10):
 
     return "\n".join(split_text)
 
+def get_parent(nnode):
+    if hasattr(nnode.label, "parent"):
+        return nnode.label.parent
+    else:
+        return None
+
+def extern_connections(nnode):
+    ext_inputs = []
+    ext_outputs = []
+    for sn in nnode.subnodes:
+        if hasattr(sn,"inputs"):
+            for i in sn.inputs:
+                if i not in nnode.subnodes:
+                    parent = get_parent(i)
+                    if parent is None:
+                        ext_inputs.append(i)
+                    else:
+                        if parent not in nnode.subnodes:
+                            ext_inputs.append(i)
+        if hasattr(sn,"outputs"):
+            for i in sn.outputs:
+                if i not in nnode.subnodes:
+                    parent = get_parent(i)
+                    if parent is None:
+                        ext_outputs.append(i)
+                    else:
+                        if parent not in nnode.subnodes:
+                            ext_outputs.append(i)
+    return ext_inputs, ext_outputs
 
 class ESGraphRenderer:
     def __init__(
