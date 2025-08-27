@@ -1,22 +1,30 @@
 [build-system]
-requires = ["setuptools", "pandas", "matplotlib", "plotly", "oemof.solph"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core >=3.2"]
+build-backend = "flit_core.buildapi"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
-packages = ["oemof.visio"]
+[tool.flit.sdist]
+include = [
+    "LICENSE",
+    "README.rst",
+    "docs/",
+    "src/",
+]
+exclude = ["docs/_build"]
+
 [project]
 name = "oemof.visio"
 authors = [
-  { name="oemof developing group", email="info@oemof.org"},
+  { name="oemof developing group", email="contact@oemof.org"},
 ]
-description = "Postprocessing and visualisation tools for oemof-solph models"
-readme = "README.rst"
-requires-python = ">=3.9"
+description = "A package that contains postprocessing and visualisation tools for oemof-solph models"
+requires-python = ">=3.10"
+
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
 ]
+readme = "README.rst"
 dependencies = [
     "matplotlib",
     "pandas",
@@ -24,6 +32,9 @@ dependencies = [
 ]
 dynamic = ["version"]
 license = "MIT"
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst"]}
 
 
 [project.optional-dependencies]

@@ -12,13 +12,13 @@ You can install the version just to plot graphs on oemof-solph results with
 
 .. code:: bash
 
-  pip install git+https://github.com/oemof/oemof_visio.git
+  pip install oemof.visio
 
 or you can install the extra requirements to also produce an image of the energy system
 
 .. code:: bash
 
-  pip install git+https://github.com/oemof/oemof_visio.git[network]
+  pip install oemof.visio[network]
 
 You can also clone this repository and install locally with
 
@@ -60,7 +60,7 @@ To render the component of an energy system, you can insert this code before you
 
 .. code:: python
 
-    from oemof_visio import ESGraphRenderer
+    from oemof.visio import ESGraphRenderer
     esgr = ESGraphRenderer(
         <your EnergySystem instance>,
         legend=True,
@@ -78,7 +78,7 @@ To produce a sankey diagramm from the raw oemof-solph results you can use this c
 
     import plotly.io as pio
 
-    from oemof_visio import ESGraphRenderer
+    from oemof.visio import ESGraphRenderer
     esgr = ESGraphRenderer(<your EnergySystem instance>)
 
     # after the solve method of the model has been called
