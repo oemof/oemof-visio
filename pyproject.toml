@@ -18,9 +18,9 @@ authors = [
 ]
 description = "A package that contains postprocessing and visualisation tools for oemof-solph models"
 requires-python = ">=3.10"
+
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Development Status :: 3 - Alpha",
 ]
@@ -39,8 +39,9 @@ readme = {file = ["README.rst"]}
 [project.optional-dependencies]
 network = [
     "graphviz",
-    "oemof.network"
+    "oemof.network",
 ]
+
 [project.urls]
 Homepage = "https://github.com/oemof/oemof-visio"
 Issues = "https://github.com/oemof/oemof-visio/issues"
