@@ -32,10 +32,13 @@ from oemof.solph.buses._bus import Bus
 try:
     from oemof.network.network import SubNetwork, Node
     from oemof.network.network import HierachicalLabel
+
     SUBNETWORK_MODULE = True
 except:
-    class SubNetwork():
+
+    class SubNetwork:
         pass
+
     SUBNETWORK_MODULE = False
     warnings.warn(
         "Your oemof-network version doesn't support the SubNetwork, if "
@@ -98,17 +101,19 @@ def fixed_width_text(text, char_num=10):
 
     return "\n".join(split_text)
 
+
 def get_parent(nnode):
     if hasattr(nnode.label, "parent"):
         return nnode.label.parent
     else:
         return None
 
+
 def extern_connections(nnode):
     ext_inputs = []
     ext_outputs = []
     for sn in nnode.subnodes:
-        if hasattr(sn,"inputs"):
+        if hasattr(sn, "inputs"):
             for i in sn.inputs:
                 if i not in nnode.subnodes:
                     parent = get_parent(i)
@@ -117,7 +122,7 @@ def extern_connections(nnode):
                     else:
                         if parent not in nnode.subnodes:
                             ext_inputs.append(i)
-        if hasattr(sn,"outputs"):
+        if hasattr(sn, "outputs"):
             for i in sn.outputs:
                 if i not in nnode.subnodes:
                     parent = get_parent(i)
@@ -230,7 +235,11 @@ class ESGraphRenderer:
 
         if SUBNETWORK_MODULE is True:
             subnetworks = [n for n in components if isinstance(n, SubNetwork)]
-            atomicnodes = [n for n in components if n.depth == depth and not isinstance(n,SubNetwork)]
+            atomicnodes = [
+                n
+                for n in components
+                if n.depth == depth and not isinstance(n, SubNetwork)
+            ]
             subnodes = [n for n in components if n.depth < depth]
             print("Subnetworks : ", ", ".join([str(n.label) for n in subnetworks]))
             print("Atomicnodes : ", ", ".join([str(n.label) for n in atomicnodes]))
@@ -241,7 +250,9 @@ class ESGraphRenderer:
                 for sn in subnetworks:
                     if sn.depth == self.max_depth:
                         ext_inputs, ext_outputs = extern_connections(sn)
-                        self.add_subnetwork(sn, subgraph=subgraph, depth=depth) #this line does not change the output
+                        self.add_subnetwork(
+                            sn, subgraph=subgraph, depth=depth
+                        )  # this line does not change the output
                     elif sn.depth > self.max_depth:
                         print("IGNORING ", sn.label, " of depth ", sn.depth)
                     else:
@@ -302,19 +313,18 @@ class ESGraphRenderer:
                 self.connect(bus, component)
         self.busses.extend(busses)
 
-    def add_subnetwork(self,sn, subgraph=None, depth=1):
+    def add_subnetwork(self, sn, subgraph=None, depth=1):
         if subgraph is None:
             dot = self.dot
         else:
             dot = subgraph
         with dot.subgraph(name="cluster_" + str(sn.label)) as c:
             # color of the box
-            c.attr(color='black')
+            c.attr(color="black")
             # title of the box
             c.attr(label=str(sn.label))
-            if depth+1 <= self.max_depth:
-                self.add_components(sn.subnodes, subgraph=c, depth=depth+1)
-
+            if depth + 1 <= self.max_depth:
+                self.add_components(sn.subnodes, subgraph=c, depth=depth + 1)
 
     def add_bus(self, label="Bus", subgraph=None):
         if subgraph is None:
@@ -434,7 +444,7 @@ class ESGraphRenderer:
 
     def render(self, **kwargs):
         """Call the render method of the DiGraph instance"""
-        print(self.dot.render(cleanup=True,**kwargs))
+        print(self.dot.render(cleanup=True, **kwargs))
         return self.dot
 
     def pipe(self, **kwargs):
@@ -455,7 +465,7 @@ class ESGraphRenderer:
         # draw a node for each of the network's component.
         # The shape depends on the component's type
         for nd in self.energy_system.nodes:
-            label=str(nd.label)
+            label = str(nd.label)
             if isinstance(nd, Bus):
 
                 # keep the bus reference for drawing edges later
