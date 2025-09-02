@@ -214,6 +214,7 @@ class ESGraphRenderer:
         self.txt_width = txt_width
         self.txt_fontsize = str(txt_fontsize)
         self.busses = []
+        self.max_depth_connexions = []
 
         if legend is True:
             with self.dot.subgraph(name="cluster_1") as c:
@@ -231,10 +232,15 @@ class ESGraphRenderer:
         # the shape depends on the component's type.
         self.add_components(energy_system.nodes)
 
+        for link in self.max_depth_connexions:
+            self.connect(*link)
+
     def add_components(self, components, subgraph=None, depth=1):
 
         if SUBNETWORK_MODULE is True:
-            subnetworks = [n for n in components if isinstance(n, SubNetwork)]
+            subnetworks = [
+                n for n in components if n.depth == depth and isinstance(n, SubNetwork)
+            ]
             atomicnodes = [
                 n
                 for n in components
@@ -248,12 +254,7 @@ class ESGraphRenderer:
             # draw the subnetworks recursively
             if subnetworks:
                 for sn in subnetworks:
-                    if sn.depth == self.max_depth:
-                        ext_inputs, ext_outputs = extern_connections(sn)
-                        self.add_subnetwork(
-                            sn, subgraph=subgraph, depth=depth
-                        )  # this line does not change the output
-                    elif sn.depth > self.max_depth:
+                    if sn.depth > self.max_depth:
                         print("IGNORING ", sn.label, " of depth ", sn.depth)
                     else:
                         self.add_subnetwork(sn, subgraph=subgraph, depth=depth)
@@ -307,10 +308,24 @@ class ESGraphRenderer:
         for bus in busses:
             for component in bus.inputs:
                 # draw an arrow from the component to the bus
-                self.connect(component, bus)
+                if component.depth <= self.max_depth:
+                    self.connect(component, bus)
+                else:
+                    print(
+                        "IGNORED THE COMPONENT ",
+                        component,
+                        " as it is below the max depth",
+                    )
             for component in bus.outputs:
                 # draw an arrow from the bus to the component
-                self.connect(bus, component)
+                if component.depth <= self.max_depth:
+                    self.connect(bus, component)
+                else:
+                    print(
+                        "IGNORED THE COMPONENT ",
+                        component,
+                        " as it is below the max depth",
+                    )
         self.busses.extend(busses)
 
     def add_subnetwork(self, sn, subgraph=None, depth=1):
@@ -318,14 +333,21 @@ class ESGraphRenderer:
             dot = self.dot
         else:
             dot = subgraph
-        with dot.subgraph(name="cluster_" + str(sn.label)) as c:
-            # color of the box
-            c.attr(color="black")
-            # title of the box
-            c.attr(label=str(sn.label))
-            if depth + 1 <= self.max_depth:
-                self.add_components(sn.subnodes, subgraph=c, depth=depth + 1)
+        if depth + 1 <= self.max_depth:
+            with dot.subgraph(name="cluster_" + str(sn.label)) as c:
+                # color of the box
+                c.attr(color="black")
+                # title of the box
+                c.attr(label=str(sn.label))
 
+                self.add_components(sn.subnodes, subgraph=c, depth=depth + 1)
+        else:
+            ext_inputs, ext_outputs = extern_connections(sn)
+
+            subnetwork_label = str(sn.label)
+            self.max_depth_connexions.extend([(i, sn) for i in ext_inputs])
+            self.max_depth_connexions.extend([(sn, o) for o in ext_outputs])
+            self.add_component(subnetwork_label, subgraph=dot)
     def add_bus(self, label="Bus", subgraph=None):
         if subgraph is None:
             dot = self.dot
