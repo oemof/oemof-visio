@@ -113,24 +113,20 @@ def extern_connections(nnode):
     ext_inputs = []
     ext_outputs = []
     for sn in nnode.subnodes:
+        if isinstance(sn, SubNetwork):
+            ext_in, ext_out = extern_connections(sn)
+            ext_inputs.extend(ext_in)
+            ext_outputs.extend(ext_out)
         if hasattr(sn, "inputs"):
             for i in sn.inputs:
-                if i not in nnode.subnodes:
-                    parent = get_parent(i)
-                    if parent is None:
-                        ext_inputs.append(i)
-                    else:
-                        if parent not in nnode.subnodes:
-                            ext_inputs.append(i)
+                if i.depth < sn.depth:
+                    ext_inputs.append(i)
+
         if hasattr(sn, "outputs"):
             for i in sn.outputs:
-                if i not in nnode.subnodes:
-                    parent = get_parent(i)
-                    if parent is None:
-                        ext_outputs.append(i)
-                    else:
-                        if parent not in nnode.subnodes:
-                            ext_outputs.append(i)
+                if i.depth < sn.depth:
+                    ext_outputs.append(i)
+
     return ext_inputs, ext_outputs
 
 
@@ -254,10 +250,7 @@ class ESGraphRenderer:
             # draw the subnetworks recursively
             if subnetworks:
                 for sn in subnetworks:
-                    if sn.depth > self.max_depth:
-                        print("IGNORING ", sn.label, " of depth ", sn.depth)
-                    else:
-                        self.add_subnetwork(sn, subgraph=subgraph, depth=depth)
+                    self.add_subnetwork(sn, subgraph=subgraph, depth=depth)
 
         else:
             atomicnodes = components
@@ -273,37 +266,41 @@ class ESGraphRenderer:
         for nd in components_to_add:
             # make sur the label is a string and not a tuple
             label = str(nd.label)
-            if isinstance(nd, Bus):
-                self.add_bus(label, subgraph=subgraph)
-                # keep the bus reference for drawing edges later
-                # TODO here get the info from inputs and outputs and adapt the labels
-                busses.append(nd)
-            elif isinstance(nd, Sink):
-                self.add_sink(label, subgraph=subgraph)
-            elif isinstance(nd, Source):
-                self.add_source(label, subgraph=subgraph)
-            elif isinstance(nd, OffsetConverter):
-                self.add_transformer(label, subgraph=subgraph)
-            elif isinstance(nd, GenericCHP):
-                self.add_chp(label, subgraph=subgraph)
-            elif isinstance(nd, ExtractionTurbineCHP):
-                self.add_chp(label, subgraph=subgraph)
-            elif isinstance(nd, Converter):
-                self.add_transformer(label, subgraph=subgraph)
-            elif isinstance(nd, Transformer):
-                self.add_transformer(label, subgraph=subgraph)
-            elif isinstance(nd, GenericStorage):
-                self.add_storage(label, subgraph=subgraph)
-            else:
-                logging.warning(
-                    "The oemof component {} of type {} is not implemented in "
-                    "the rendering method of the energy model graph drawer. "
-                    "It will be therefore rendered as an ellipse".format(
-                        nd.label, type(nd)
+            if nd.depth <= self.max_depth:
+                if isinstance(nd, Bus):
+                    self.add_bus(label, subgraph=subgraph)
+                    # keep the bus reference for drawing edges later
+                    # TODO here get the info from inputs and outputs and adapt the labels
+                    busses.append(nd)
+                elif isinstance(nd, Sink):
+                    self.add_sink(label, subgraph=subgraph)
+                elif isinstance(nd, Source):
+                    self.add_source(label, subgraph=subgraph)
+                elif isinstance(nd, OffsetConverter):
+                    self.add_transformer(label, subgraph=subgraph)
+                elif isinstance(nd, GenericCHP):
+                    self.add_chp(label, subgraph=subgraph)
+                elif isinstance(nd, ExtractionTurbineCHP):
+                    self.add_chp(label, subgraph=subgraph)
+                elif isinstance(nd, Converter):
+                    self.add_transformer(label, subgraph=subgraph)
+                elif isinstance(nd, Transformer):
+                    self.add_transformer(label, subgraph=subgraph)
+                elif isinstance(nd, GenericStorage):
+                    self.add_storage(label, subgraph=subgraph)
+                else:
+                    logging.warning(
+                        "The oemof component {} of type {} is not implemented in "
+                        "the rendering method of the energy model graph drawer. "
+                        "It will be therefore rendered as an ellipse".format(
+                            nd.label, type(nd)
+                        )
                     )
-                )
-                self.add_component(label, subgraph=subgraph)
+                    self.add_component(label, subgraph=subgraph)
 
+            else:
+                if isinstance(nd, Bus):
+                    busses.append(nd)
         # draw the edges between the nodes based on each bus inputs/outputs
         for bus in busses:
             for component in bus.inputs:
@@ -333,21 +330,30 @@ class ESGraphRenderer:
             dot = self.dot
         else:
             dot = subgraph
-        if depth + 1 <= self.max_depth:
-            with dot.subgraph(name="cluster_" + str(sn.label)) as c:
-                # color of the box
-                c.attr(color="black")
-                # title of the box
-                c.attr(label=str(sn.label))
 
-                self.add_components(sn.subnodes, subgraph=c, depth=depth + 1)
-        else:
-            ext_inputs, ext_outputs = extern_connections(sn)
+        with dot.subgraph(name="cluster_" + str(sn.label)) as c:
+            # color of the box
+            c.attr(color="black")
+            # title of the box
+            c.attr(label=str(sn.label))
 
-            subnetwork_label = str(sn.label)
-            self.max_depth_connexions.extend([(i, sn) for i in ext_inputs])
-            self.max_depth_connexions.extend([(sn, o) for o in ext_outputs])
-            self.add_component(subnetwork_label, subgraph=dot)
+            if depth + 1 <= self.max_depth:
+                pass
+            else:
+                ext_inputs, ext_outputs = extern_connections(sn)
+
+                print("Inputs", ext_inputs)
+                print("Outputs", ext_outputs)
+                subnetwork_label = str(sn.label)
+                self.max_depth_connexions.extend([(i, sn) for i in ext_inputs])
+                self.max_depth_connexions.extend([(sn, o) for o in ext_outputs])
+
+                print("Max depth reached, updating the max_depth_connections")
+                print(self.max_depth_connexions)
+                self.add_component(subnetwork_label, subgraph=dot)
+
+            self.add_components(sn.subnodes, subgraph=c, depth=depth + 1)
+
     def add_bus(self, label="Bus", subgraph=None):
         if subgraph is None:
             dot = self.dot
@@ -449,16 +455,17 @@ class ESGraphRenderer:
         b: `oemof.solph.network.Node`
             An oemof node (usually a Bus or a Component)
         """
-        if not isinstance(a, Bus):
-            a = fixed_width_text(str(a.label), char_num=self.txt_width)
-        else:
-            a = str(a.label)
-        if not isinstance(b, Bus):
-            b = fixed_width_text(str(b.label), char_num=self.txt_width)
-        else:
-            b = str(b.label)
+        if a.depth <= self.max_depth and b.depth <= self.max_depth:
+            if not isinstance(a, Bus):
+                a = fixed_width_text(str(a.label), char_num=self.txt_width)
+            else:
+                a = str(a.label)
+            if not isinstance(b, Bus):
+                b = fixed_width_text(str(b.label), char_num=self.txt_width)
+            else:
+                b = str(b.label)
 
-        self.dot.edge(a, b)
+            self.dot.edge(a, b)
 
     def view(self, **kwargs):
         """Call the view method of the DiGraph instance"""
