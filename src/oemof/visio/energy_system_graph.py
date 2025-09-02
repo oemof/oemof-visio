@@ -232,7 +232,6 @@ class ESGraphRenderer:
             self.connect(*link)
 
     def add_components(self, components, subgraph=None, depth=1):
-
         if SUBNETWORK_MODULE is True:
             subnetworks = [
                 n for n in components if n.depth == depth and isinstance(n, SubNetwork)
@@ -242,10 +241,8 @@ class ESGraphRenderer:
                 for n in components
                 if n.depth == depth and not isinstance(n, SubNetwork)
             ]
-            subnodes = [n for n in components if n.depth < depth]
-            print("Subnetworks : ", ", ".join([str(n.label) for n in subnetworks]))
-            print("Atomicnodes : ", ", ".join([str(n.label) for n in atomicnodes]))
-            print("Subnodes : ", ", ".join([str(n.label) for n in subnodes]))
+            # print("Subnetworks : ", ", ".join([str(n.label) for n in subnetworks]))
+            # print("Atomicnodes : ", ", ".join([str(n.label) for n in atomicnodes]))
 
             # draw the subnetworks recursively
             if subnetworks:
@@ -255,11 +252,8 @@ class ESGraphRenderer:
         else:
             atomicnodes = components
 
-        # TODO this should prevent the double drawing of components
         if atomicnodes:
             components_to_add = atomicnodes
-        else:
-            components_to_add = subnodes
 
         busses = []
 
@@ -270,7 +264,6 @@ class ESGraphRenderer:
                 if isinstance(nd, Bus):
                     self.add_bus(label, subgraph=subgraph)
                     # keep the bus reference for drawing edges later
-                    # TODO here get the info from inputs and outputs and adapt the labels
                     busses.append(nd)
                 elif isinstance(nd, Sink):
                     self.add_sink(label, subgraph=subgraph)
@@ -331,28 +324,25 @@ class ESGraphRenderer:
         else:
             dot = subgraph
 
-        with dot.subgraph(name="cluster_" + str(sn.label)) as c:
-            # color of the box
-            c.attr(color="black")
-            # title of the box
-            c.attr(label=str(sn.label))
+        if depth + 1 <= self.max_depth:
+            with dot.subgraph(name="cluster_" + str(sn.label)) as c:
+                # color of the box
+                c.attr(color="black")
+                # title of the box
+                c.attr(label=str(sn.label))
+                self.add_components(sn.subnodes, subgraph=c, depth=depth + 1)
+        else:
+            ext_inputs, ext_outputs = extern_connections(sn)
 
-            if depth + 1 <= self.max_depth:
-                pass
-            else:
-                ext_inputs, ext_outputs = extern_connections(sn)
+            self.max_depth_connexions.extend([(i, sn) for i in ext_inputs])
+            self.max_depth_connexions.extend([(sn, o) for o in ext_outputs])
 
-                print("Inputs", ext_inputs)
-                print("Outputs", ext_outputs)
-                subnetwork_label = str(sn.label)
-                self.max_depth_connexions.extend([(i, sn) for i in ext_inputs])
-                self.max_depth_connexions.extend([(sn, o) for o in ext_outputs])
+            # draw a component at the depth limit
+            if depth + 1 == self.max_depth:
+                self.add_component(str(sn.label), subgraph=dot)
 
-                print("Max depth reached, updating the max_depth_connections")
-                print(self.max_depth_connexions)
-                self.add_component(subnetwork_label, subgraph=dot)
-
-            self.add_components(sn.subnodes, subgraph=c, depth=depth + 1)
+            # collect the information about potential connections (no node will be drawn)
+            self.add_components(sn.subnodes, subgraph=dot, depth=depth + 1)
 
     def add_bus(self, label="Bus", subgraph=None):
         if subgraph is None:
