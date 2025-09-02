@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 """
 
 import logging
+import warnings
 import math
 import os
 import plotly.graph_objs as go
@@ -28,7 +29,19 @@ except ModuleNotFoundError:
 # new with oemof-solph 0.5.2
 from oemof.solph.buses._bus import Bus
 
-from oemof.network.network import SubNetwork, Node
+try:
+    from oemof.network.network import SubNetwork, Node
+    from oemof.network.network import HierachicalLabel
+    SUBNETWORK_MODULE = True
+except:
+    class SubNetwork():
+        pass
+    SUBNETWORK_MODULE = False
+    warnings.warn(
+        "Your oemof-network version doesn't support the SubNetwork, if "
+        "you want to work with SubNetworks, please update oemof-solph"
+    )
+
 try:
     from oemof.solph.components import (
         GenericStorage,
@@ -114,6 +127,7 @@ def extern_connections(nnode):
                         if parent not in nnode.subnodes:
                             ext_outputs.append(i)
     return ext_inputs, ext_outputs
+
 
 class ESGraphRenderer:
     def __init__(
@@ -214,22 +228,27 @@ class ESGraphRenderer:
 
     def add_components(self, components, subgraph=None, depth=1):
 
-        subnetworks = [n for n in components if isinstance(n, SubNetwork)]
-        atomicnodes = [n for n in components if n.depth == depth and not isinstance(n,SubNetwork)]
-        subnodes = [n for n in components if n.depth < depth]
-        print("Subnetworks : ", ", ".join([str(n.label) for n in subnetworks]))
-        print("Atomicnodes : ", ", ".join([str(n.label) for n in atomicnodes]))
-        print("Subnodes : ", ", ".join([str(n.label) for n in subnodes]))
+        if SUBNETWORK_MODULE is True:
+            subnetworks = [n for n in components if isinstance(n, SubNetwork)]
+            atomicnodes = [n for n in components if n.depth == depth and not isinstance(n,SubNetwork)]
+            subnodes = [n for n in components if n.depth < depth]
+            print("Subnetworks : ", ", ".join([str(n.label) for n in subnetworks]))
+            print("Atomicnodes : ", ", ".join([str(n.label) for n in atomicnodes]))
+            print("Subnodes : ", ", ".join([str(n.label) for n in subnodes]))
 
-        # draw the subnetworks recursively
-        if subnetworks:
-            for sn in subnetworks:
-                if sn.depth == self.max_depth:
-                    self.add_subnetwork(sn, subgraph=subgraph, depth=depth) #this line does not change the output
-                elif sn.depth > self.max_depth:
-                    print("IGNORING ", sn.label, " of depth ", sn.depth)
-                else:
-                    self.add_subnetwork(sn, subgraph=subgraph, depth=depth)
+            # draw the subnetworks recursively
+            if subnetworks:
+                for sn in subnetworks:
+                    if sn.depth == self.max_depth:
+                        ext_inputs, ext_outputs = extern_connections(sn)
+                        self.add_subnetwork(sn, subgraph=subgraph, depth=depth) #this line does not change the output
+                    elif sn.depth > self.max_depth:
+                        print("IGNORING ", sn.label, " of depth ", sn.depth)
+                    else:
+                        self.add_subnetwork(sn, subgraph=subgraph, depth=depth)
+
+        else:
+            atomicnodes = components
 
         # TODO this should prevent the double drawing of components
         if atomicnodes:
