@@ -188,7 +188,7 @@ class ESGraphRenderer:
                 "You have to install the following packages to plot a graph\n"
                 "pip install {0}".format(" ".join(missing_modules))
             )
-        self.max_depth = 4
+        self.max_depth = None
         self.energy_system = energy_system
         if filepath is not None:
             file_name, file_ext = os.path.splitext(filepath)
@@ -206,30 +206,13 @@ class ESGraphRenderer:
             else:
                 img_format = "pdf"
 
-        self.dot = graphviz.Digraph(format=img_format, **kwargs)
+        self.legend = legend
+        self.img_format = img_format
+        self.digraph_kwargs = kwargs
         self.txt_width = txt_width
         self.txt_fontsize = str(txt_fontsize)
-        self.busses = []
-        self.max_depth_connexions = []
 
-        if legend is True:
-            with self.dot.subgraph(name="cluster_1") as c:
-                # color of the legend box
-                c.attr(color="black")
-                # title of the legend box
-                c.attr(label="Legends")
-                self.add_bus(subgraph=c)
-                self.add_sink(subgraph=c)
-                self.add_source(subgraph=c)
-                self.add_transformer(subgraph=c)
-                self.add_storage(subgraph=c)
-
-        # draw a node for each of the energy_system's component.
-        # the shape depends on the component's type.
-        self.add_components(energy_system.nodes)
-
-        for link in self.max_depth_connexions:
-            self.connect(*link)
+        self._generate_graph()
 
     def add_components(self, components, subgraph=None, depth=1):
         if SUBNETWORK_MODULE is True:
@@ -457,17 +440,50 @@ class ESGraphRenderer:
 
             self.dot.edge(a, b)
 
-    def view(self, **kwargs):
+    def _generate_graph(self, max_depth=None):
+        self.dot = graphviz.Digraph(format=self.img_format, **self.digraph_kwargs)
+        self.busses = []
+        self.max_depth_connexions = []
+        if max_depth is not None:
+            self.max_depth = max_depth
+        else:
+            self.max_depth = (
+                4  # TODO adapt this with the max_depth of the energy_system
+            )
+
+        if self.legend is True:
+            with self.dot.subgraph(name="cluster_1") as c:
+                # color of the legend box
+                c.attr(color="black")
+                # title of the legend box
+                c.attr(label="Legends")
+                self.add_bus(subgraph=c)
+                self.add_sink(subgraph=c)
+                self.add_source(subgraph=c)
+                self.add_transformer(subgraph=c)
+                self.add_storage(subgraph=c)
+
+        # draw a node for each of the energy_system's component.
+        # the shape depends on the component's type.
+        self.add_components(self.energy_system.nodes)
+
+        for link in self.max_depth_connexions:
+            self.connect(*link)
+
+    def view(self, max_depth=None, **kwargs):
         """Call the view method of the DiGraph instance"""
+        self._generate_graph(max_depth)
         self.dot.view(**kwargs)
 
-    def render(self, **kwargs):
+    def render(self, max_depth=None, **kwargs):
         """Call the render method of the DiGraph instance"""
+        self._generate_graph(max_depth)
         print(self.dot.render(cleanup=True, **kwargs))
         return self.dot
 
-    def pipe(self, **kwargs):
+    def pipe(self, max_depth=None, **kwargs):
         """Call the pipe method of the DiGraph instance"""
+        self._generate_graph(max_depth)
         self.dot.pipe(**kwargs)
 
     def sankey(self, results, ts=None):
