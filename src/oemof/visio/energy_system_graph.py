@@ -173,7 +173,7 @@ class ESGraphRenderer:
                 "You have to install the following packages to plot a graph\n"
                 "pip install {0}".format(" ".join(missing_modules))
             )
-
+        self.max_depth = 4
         self.energy_system = energy_system
         if filepath is not None:
             file_name, file_ext = os.path.splitext(filepath)
@@ -224,7 +224,12 @@ class ESGraphRenderer:
         # draw the subnetworks recursively
         if subnetworks:
             for sn in subnetworks:
-                self.add_subnetwork(sn, subgraph=subgraph, depth=depth)
+                if sn.depth == self.max_depth:
+                    self.add_subnetwork(sn, subgraph=subgraph, depth=depth) #this line does not change the output
+                elif sn.depth > self.max_depth:
+                    print("IGNORING ", sn.label, " of depth ", sn.depth)
+                else:
+                    self.add_subnetwork(sn, subgraph=subgraph, depth=depth)
 
         # TODO this should prevent the double drawing of components
         if atomicnodes:
@@ -288,7 +293,8 @@ class ESGraphRenderer:
             c.attr(color='black')
             # title of the box
             c.attr(label=str(sn.label))
-            self.add_components(sn.subnodes, subgraph=c, depth=depth+1)
+            if depth+1 <= self.max_depth:
+                self.add_components(sn.subnodes, subgraph=c, depth=depth+1)
 
 
     def add_bus(self, label="Bus", subgraph=None):
