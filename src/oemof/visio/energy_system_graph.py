@@ -443,9 +443,7 @@ class ESGraphRenderer:
         if max_depth is not None:
             self.max_depth = max_depth
         else:
-            self.max_depth = (
-                4  # TODO adapt this with the max_depth of the energy_system
-            )
+            self.max_depth = max([n.depth for n in self.energy_system.nodes])
 
         if self.legend is True:
             with self.dot.subgraph(name="cluster_1") as c:
