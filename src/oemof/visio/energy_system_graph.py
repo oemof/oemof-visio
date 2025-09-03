@@ -201,8 +201,6 @@ class ESGraphRenderer:
         self.txt_width = txt_width
         self.txt_fontsize = str(txt_fontsize)
 
-        self._generate_graph()
-
     def add_components(self, components, subgraph=None, depth=1):
         if SUBNETWORK_MODULE is True:
             subnetworks = [
@@ -213,8 +211,6 @@ class ESGraphRenderer:
                 for n in components
                 if n.depth == depth and not isinstance(n, SubNetwork)
             ]
-            # print("Subnetworks : ", ", ".join([str(n.label) for n in subnetworks]))
-            # print("Atomicnodes : ", ", ".join([str(n.label) for n in atomicnodes]))
 
             # draw the subnetworks recursively
             if subnetworks:
@@ -286,25 +282,32 @@ class ESGraphRenderer:
         else:
             dot = subgraph
 
-        if depth + 1 <= self.max_depth:
-            with dot.subgraph(name="cluster_" + str(sn.label)) as c:
-                # color of the box
-                c.attr(color="black")
-                # title of the box
-                c.attr(label=str(sn.label))
+        with dot.subgraph(name="cluster_" + str(sn.label)) as c:
+            # color of the box
+            c.attr(color="black")
+            # title of the box
+            c.attr(label=str(sn.label))
+            self.add_components(sn.subnodes, subgraph=c, depth=depth + 1)
+            if depth + 1 <= self.max_depth:
+                pass
+            else:
+                ext_inputs, ext_outputs = extern_connections(sn)
+
+                self.max_depth_connexions.extend([(i, sn) for i in ext_inputs])
+                self.max_depth_connexions.extend([(sn, o) for o in ext_outputs])
+
+                # draw a component at the depth limit
+                if sn.depth <= self.max_depth:
+                    dot.node(
+                        fixed_width_text(str(sn.label), char_num=self.txt_width),
+                        shape="rectangle",
+                        style="dashed",
+                        color="grey",
+                        fontsize=self.txt_fontsize,
+                    )
+
+                # collect the information about potential connections (no node will be drawn)
                 self.add_components(sn.subnodes, subgraph=c, depth=depth + 1)
-        else:
-            ext_inputs, ext_outputs = extern_connections(sn)
-
-            self.max_depth_connexions.extend([(i, sn) for i in ext_inputs])
-            self.max_depth_connexions.extend([(sn, o) for o in ext_outputs])
-
-            # draw a component at the depth limit
-            if depth + 1 == self.max_depth:
-                self.add_component(str(sn.label), subgraph=dot)
-
-            # collect the information about potential connections (no node will be drawn)
-            self.add_components(sn.subnodes, subgraph=dot, depth=depth + 1)
 
     def add_bus(self, label="Bus", subgraph=None):
         if subgraph is None:
