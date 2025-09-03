@@ -230,6 +230,11 @@ class ESGraphRenderer:
         busses = []
 
         for nd in components_to_add:
+
+            # Back-compatibility with oemof-solph 0.6.0 and lower
+            if SUBNETWORK_MODULE is False:
+                if not hasattr(nd, "depth"):
+                    setattr(nd, "depth", 1)
             # make sur the label is a string and not a tuple
             label = str(nd.label)
             if nd.depth <= self.max_depth:
@@ -270,24 +275,9 @@ class ESGraphRenderer:
         for bus in busses:
             for component in bus.inputs:
                 # draw an arrow from the component to the bus
-                if component.depth <= self.max_depth:
-                    self.connect(component, bus)
-                else:
-                    logging.debug(
-                        "IGNORED THE COMPONENT ",
-                        component,
-                        " as it is below the max depth",
-                    )
+                self.connect(component, bus)
             for component in bus.outputs:
-                # draw an arrow from the bus to the component
-                if component.depth <= self.max_depth:
-                    self.connect(bus, component)
-                else:
-                    logging.debug(
-                        "IGNORED THE COMPONENT ",
-                        component,
-                        " as it is below the max depth",
-                    )
+                self.connect(bus, component)
         self.busses.extend(busses)
 
     def add_subnetwork(self, sn, subgraph=None, depth=1):
@@ -417,6 +407,13 @@ class ESGraphRenderer:
         b: `oemof.solph.network.Node`
             An oemof node (usually a Bus or a Component)
         """
+
+        # Back-compatibility with oemof-solph 0.6.0 and lower
+        if SUBNETWORK_MODULE is False:
+            for n in (a, b):
+                if not hasattr(n, "depth"):
+                    setattr(n, "depth", 1)
+
         if a.depth <= self.max_depth and b.depth <= self.max_depth:
             if not isinstance(a, Bus):
                 a = fixed_width_text(str(a.label), char_num=self.txt_width)
@@ -427,7 +424,17 @@ class ESGraphRenderer:
             else:
                 b = str(b.label)
 
-            self.dot.edge(a, b)
+            self.dot.edge(a, b, color="blue")
+        else:
+            if isinstance(a, Bus):
+                component = b
+            else:
+                component = a
+            logging.debug(
+                "IGNORED THE COMPONENT ",
+                component,
+                " as it is below the max depth",
+            )
 
     def _generate_graph(self, max_depth=None):
         self.dot = graphviz.Digraph(format=self.img_format, **self.digraph_kwargs)
@@ -436,7 +443,10 @@ class ESGraphRenderer:
         if max_depth is not None:
             self.max_depth = max_depth
         else:
-            self.max_depth = max([n.depth for n in self.energy_system.nodes])
+            if SUBNETWORK_MODULE is True:
+                self.max_depth = max([n.depth for n in self.energy_system.nodes])
+            else:
+                self.max_depth = 1
 
         if self.legend is True:
             with self.dot.subgraph(name="cluster_1") as c:
