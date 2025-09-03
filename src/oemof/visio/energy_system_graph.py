@@ -474,6 +474,10 @@ class ESGraphRenderer:
         self._generate_graph(max_depth)
         self.dot.pipe(**kwargs)
 
+    def source(self, max_depth=None):
+        self._generate_graph(max_depth)
+        return self.dot.source
+
     def sankey(self, results, ts=None):
         """Return a dict to a plotly sankey diagram"""
         busses = []
