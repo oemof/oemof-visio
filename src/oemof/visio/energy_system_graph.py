@@ -280,7 +280,7 @@ class ESGraphRenderer:
                 if component.depth <= self.max_depth:
                     self.connect(component, bus)
                 else:
-                    print(
+                    logging.debug(
                         "IGNORED THE COMPONENT ",
                         component,
                         " as it is below the max depth",
@@ -290,7 +290,7 @@ class ESGraphRenderer:
                 if component.depth <= self.max_depth:
                     self.connect(bus, component)
                 else:
-                    print(
+                    logging.debug(
                         "IGNORED THE COMPONENT ",
                         component,
                         " as it is below the max depth",
@@ -474,7 +474,8 @@ class ESGraphRenderer:
     def render(self, max_depth=None, **kwargs):
         """Call the render method of the DiGraph instance"""
         self._generate_graph(max_depth)
-        print(self.dot.render(cleanup=True, **kwargs))
+        fname = self.dot.render(cleanup=True, **kwargs)
+        logging.info(f"The energy system graph was saved under '{fname}' in the current directory")
         return self.dot
 
     def pipe(self, max_depth=None, **kwargs):
