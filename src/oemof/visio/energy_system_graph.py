@@ -466,7 +466,9 @@ class ESGraphRenderer:
         """Call the render method of the DiGraph instance"""
         self._generate_graph(max_depth)
         fname = self.dot.render(cleanup=True, **kwargs)
-        logging.info(f"The energy system graph was saved under '{fname}' in the current directory")
+        logging.info(
+            f"The energy system graph was saved under '{fname}' in the current directory"
+        )
         return self.dot
 
     def pipe(self, max_depth=None, **kwargs):
