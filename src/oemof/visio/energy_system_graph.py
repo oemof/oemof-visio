@@ -98,13 +98,6 @@ def fixed_width_text(text, char_num=10):
     return "\n".join(split_text)
 
 
-def get_parent(nnode):
-    if hasattr(nnode.label, "parent"):
-        return nnode.label.parent
-    else:
-        return None
-
-
 def extern_connections(nnode):
     ext_inputs = []
     ext_outputs = []
