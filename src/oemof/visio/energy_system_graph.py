@@ -40,10 +40,6 @@ except:
         pass
 
     SUBNETWORK_MODULE = False
-    warnings.warn(
-        "Your oemof-network version doesn't support the SubNetwork, if "
-        "you want to work with SubNetworks, please update oemof-solph"
-    )
 
 try:
     from oemof.solph.components import (
