@@ -98,6 +98,7 @@ def fixed_width_text(text, char_num=10):
     return "\n".join(split_text)
 
 
+# TODO move this to network directly
 def extern_connections(nnode):
     ext_inputs = []
     ext_outputs = []
@@ -126,7 +127,7 @@ class ESGraphRenderer:
         filepath=None,
         img_format=None,
         legend=False,
-        txt_width=10,
+        txt_width=40,
         txt_fontsize=10,
         **kwargs,
     ):
@@ -427,7 +428,7 @@ class ESGraphRenderer:
             else:
                 b = str(b.label)
 
-            self.dot.edge(a, b, color="blue")
+            self.dot.edge(a, b, color="black")
         else:
             if isinstance(a, Bus):
                 component = b
