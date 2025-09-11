@@ -30,8 +30,7 @@ except ModuleNotFoundError:
 from oemof.solph.buses._bus import Bus
 
 try:
-    from oemof.network.network import SubNetwork, Node
-    from oemof.network.network import HierachicalLabel
+    from oemof.network.network import SubNetwork, AtomicNode, Node
 
     SUBNETWORK_MODULE = True
 except:
@@ -227,7 +226,6 @@ class ESGraphRenderer:
         busses = []
 
         for nd in components_to_add:
-
             # Back-compatibility with oemof-solph 0.6.0 and lower
             if SUBNETWORK_MODULE is False:
                 if not hasattr(nd, "depth"):
