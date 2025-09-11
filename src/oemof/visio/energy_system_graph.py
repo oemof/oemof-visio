@@ -443,7 +443,10 @@ class ESGraphRenderer:
         self.busses = []
         self.max_depth_connexions = []
         if max_depth is not None:
-            self.max_depth = max_depth
+            if max_depth >= 1:
+                self.max_depth = max_depth
+            else:
+                logging.warning("The max_depth cannot be lower than 1")
         else:
             if SUBNETWORK_MODULE is True:
                 self.max_depth = max([n.depth for n in self.energy_system.nodes])
