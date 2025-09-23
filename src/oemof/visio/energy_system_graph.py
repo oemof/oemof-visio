@@ -201,7 +201,7 @@ class ESGraphRenderer:
         self.txt_width = txt_width
         self.txt_fontsize = str(txt_fontsize)
 
-    def add_components(self, components, subgraph=None, depth=1):
+    def add_components(self, components, subgraph=None, depth=0):
         if SUBNETWORK_MODULE is True:
             subnetworks = [
                 n for n in components if n.depth == depth and isinstance(n, SubNetwork)
@@ -229,7 +229,7 @@ class ESGraphRenderer:
             # Back-compatibility with oemof-solph 0.6.0 and lower
             if SUBNETWORK_MODULE is False:
                 if not hasattr(nd, "depth"):
-                    setattr(nd, "depth", 1)
+                    setattr(nd, "depth", 0)
             # make sur the label is a string and not a tuple
             label = str(nd.label)
             if nd.depth <= self.max_depth:
@@ -275,7 +275,7 @@ class ESGraphRenderer:
                 self.connect(bus, component)
         self.busses.extend(busses)
 
-    def add_subnetwork(self, sn, subgraph=None, depth=1):
+    def add_subnetwork(self, sn, subgraph=None, depth=0):
         if subgraph is None:
             dot = self.dot
         else:
@@ -414,7 +414,7 @@ class ESGraphRenderer:
         if SUBNETWORK_MODULE is False:
             for n in (a, b):
                 if not hasattr(n, "depth"):
-                    setattr(n, "depth", 1)
+                    setattr(n, "depth", 0)
 
         if a.depth <= self.max_depth and b.depth <= self.max_depth:
             if not isinstance(a, Bus):
@@ -443,15 +443,15 @@ class ESGraphRenderer:
         self.busses = []
         self.max_depth_connexions = []
         if max_depth is not None:
-            if max_depth >= 1:
+            if max_depth >= 0:
                 self.max_depth = max_depth
             else:
-                logging.warning("The max_depth cannot be lower than 1")
+                logging.warning("The max_depth cannot be lower than 0")
         else:
             if SUBNETWORK_MODULE is True:
                 self.max_depth = max([n.depth for n in self.energy_system.nodes])
             else:
-                self.max_depth = 1
+                self.max_depth = 0
 
         if self.legend is True:
             with self.dot.subgraph(name="cluster_1") as c:

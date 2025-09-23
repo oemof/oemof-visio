@@ -103,7 +103,7 @@ def main():
     from oemof.visio import ESGraphRenderer
 
     gr = ESGraphRenderer(energy_system=energysystem, filepath="depth_example.pdf")
-    for i in [3, 2, 1]:
+    for i in [2, 1, 0]:
         gr.render(max_depth=i, filename=f"depth_example_{i}", format="png")
 
 if __name__ == "__main__":
