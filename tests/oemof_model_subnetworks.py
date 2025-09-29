@@ -105,6 +105,37 @@ def main():
     gr = ESGraphRenderer(energy_system=energysystem, filepath="depth_example.pdf")
     for i in [2, 1, 0]:
         gr.render(max_depth=i, filename=f"depth_example_{i}", format="png")
+    # gr.render()
+    #
+    # # from graphviz import Digraph
+    # #
+    #
+    # #
+    # # graph = Digraph(body=dot_text)
+    # #
+    # # import pdb;pdb.set_trace()
+    #
+    # with open("graph.dot", "w") as f:
+    #     f.write(gr.source())
+    #
+    # with open("ref_graph.dot") as f:
+    #     ref_dot = f.read()
+    #
+    # with open("graph.dot") as f:
+    #     to_compare_dot = f.read()
+    #
+    # print(gr.source() == to_compare_dot)
+
+    # from oemof.visio import ESGraphRenderer
+    # gr = ESGraphRenderer(energy_system=energysystem)
+    #
+    # with open("ref_graph.dot") as f:
+    #     ref_dot = f.read()
+    #
+    # assert gr.source() == ref_dot
+    # import pdb;
+    # pdb.set_trace()
+
 
 if __name__ == "__main__":
     main()
