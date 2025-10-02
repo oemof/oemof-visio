@@ -95,7 +95,7 @@ def extern_connections(nnode):
     ext_inputs = []
     ext_outputs = []
     for sn in nnode.subnodes:
-        if len(sn.subnodes) > 0:
+        if sn.subnodes:
             ext_in, ext_out = extern_connections(sn)
             ext_inputs.extend(ext_in)
             ext_outputs.extend(ext_out)
@@ -197,12 +197,12 @@ class ESGraphRenderer:
     def add_components(self, components, subgraph=None, depth=0):
         if SUBNETWORK_MODULE is True:
             subnetworks = [
-                n for n in components if n.depth == depth and len(n.subnodes) > 0
+                n for n in components if n.depth == depth and n.subnodes
             ]
             atomicnodes = [
                 n
                 for n in components
-                if n.depth == depth and len(n.subnodes) == 0
+                if n.depth == depth and not n.subnodes
             ]
 
             # draw the subnetworks recursively
