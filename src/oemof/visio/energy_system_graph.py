@@ -29,9 +29,6 @@ except ModuleNotFoundError:
 # new with oemof-solph 0.5.2
 from oemof.solph.buses._bus import Bus
 
-from oemof.network.network import Node
-
-SUBNETWORK_MODULE = True
 
 try:
     from oemof.solph.components import (
@@ -195,23 +192,20 @@ class ESGraphRenderer:
         self.txt_fontsize = str(txt_fontsize)
 
     def add_components(self, components, subgraph=None, depth=0):
-        if SUBNETWORK_MODULE is True:
-            subnetworks = [
-                n for n in components if n.depth == depth and n.subnodes
-            ]
-            atomicnodes = [
-                n
-                for n in components
-                if n.depth == depth and not n.subnodes
-            ]
+        subnetworks = [
+            n for n in components if n.depth == depth and n.subnodes
+        ]
+        atomicnodes = [
+            n
+            for n in components
+            if n.depth == depth and not n.subnodes
+        ]
 
-            # draw the subnetworks recursively
-            if subnetworks:
-                for sn in subnetworks:
-                    self.add_subnetwork(sn, subgraph=subgraph, depth=depth)
+        # draw the subnetworks recursively
+        if subnetworks:
+            for sn in subnetworks:
+                self.add_subnetwork(sn, subgraph=subgraph, depth=depth)
 
-        else:
-            atomicnodes = components
 
         if atomicnodes:
             components_to_add = atomicnodes
@@ -219,10 +213,6 @@ class ESGraphRenderer:
         busses = []
 
         for nd in components_to_add:
-            # Back-compatibility with oemof-solph 0.6.0 and lower
-            if SUBNETWORK_MODULE is False:
-                if not hasattr(nd, "depth"):
-                    setattr(nd, "depth", 0)
             # make sur the label is a string and not a tuple
             label = str(nd.label)
             if nd.depth <= self.max_depth:
@@ -403,11 +393,6 @@ class ESGraphRenderer:
             An oemof node (usually a Bus or a Component)
         """
 
-        # Back-compatibility with oemof-solph 0.6.0 and lower
-        if SUBNETWORK_MODULE is False:
-            for n in (a, b):
-                if not hasattr(n, "depth"):
-                    setattr(n, "depth", 0)
 
         if a.depth <= self.max_depth and b.depth <= self.max_depth:
             if not isinstance(a, Bus):
@@ -441,10 +426,7 @@ class ESGraphRenderer:
             else:
                 logging.warning("The max_depth cannot be lower than 0")
         else:
-            if SUBNETWORK_MODULE is True:
-                self.max_depth = max([n.depth for n in self.energy_system.nodes])
-            else:
-                self.max_depth = 0
+            self.max_depth = max([n.depth for n in self.energy_system.nodes])
 
         if self.legend is True:
             with self.dot.subgraph(name="cluster_1") as c:
