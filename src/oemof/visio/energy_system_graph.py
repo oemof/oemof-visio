@@ -29,16 +29,9 @@ except ModuleNotFoundError:
 # new with oemof-solph 0.5.2
 from oemof.solph.buses._bus import Bus
 
-try:
-    from oemof.network.network import SubNetwork, AtomicNode, Node
+from oemof.network.network import Node
 
-    SUBNETWORK_MODULE = True
-except:
-
-    class SubNetwork:
-        pass
-
-    SUBNETWORK_MODULE = False
+SUBNETWORK_MODULE = True
 
 try:
     from oemof.solph.components import (
@@ -102,7 +95,7 @@ def extern_connections(nnode):
     ext_inputs = []
     ext_outputs = []
     for sn in nnode.subnodes:
-        if isinstance(sn, SubNetwork):
+        if len(sn.subnodes) > 0:
             ext_in, ext_out = extern_connections(sn)
             ext_inputs.extend(ext_in)
             ext_outputs.extend(ext_out)
@@ -204,12 +197,12 @@ class ESGraphRenderer:
     def add_components(self, components, subgraph=None, depth=0):
         if SUBNETWORK_MODULE is True:
             subnetworks = [
-                n for n in components if n.depth == depth and isinstance(n, SubNetwork)
+                n for n in components if n.depth == depth and len(n.subnodes) > 0
             ]
             atomicnodes = [
                 n
                 for n in components
-                if n.depth == depth and not isinstance(n, SubNetwork)
+                if n.depth == depth and len(n.subnodes) == 0
             ]
 
             # draw the subnetworks recursively

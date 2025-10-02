@@ -13,7 +13,7 @@ oemof.tools==0.4.3
 
 import logging
 
-from oemof.network import SubNetwork, AtomicNode
+from oemof.network import Node
 
 from oemof.solph import EnergySystem
 from oemof.solph import buses
@@ -59,7 +59,7 @@ def main():
         )
     )
 
-    sn = SubNetwork("sn_d1")
+    sn = Node("sn_d1")
 
     bus_dep_2 = sn.subnode(
         buses.Bus,
@@ -74,7 +74,7 @@ def main():
     )
 
     sn2 = sn.subnode(
-        SubNetwork,
+        Node,
         "sn_d2",
     )
 
