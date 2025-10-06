@@ -69,6 +69,16 @@ To render the component of an energy system, you can insert this code before you
     )
     esgr.render()
 
+Render depth
+------------
+
+Since oemof-network release above 0.5.1, the SubNetwork class allows to create energy systems with nested subnodes.
+
+By default `esgr.render()` will display all the subnodes. However, if you want to hide complexity of subnodes you can use
+`esgr.render(max_depth=2)` to hide all subnodes with depth greater than 2 within their parent.
+
+
+
 Sankey diagramm
 ---------------
 

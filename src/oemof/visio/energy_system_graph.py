@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 """
 
 import logging
+import warnings
 import math
 import os
 import plotly.graph_objs as go
@@ -27,6 +28,7 @@ except ModuleNotFoundError:
     NETWORK_MODULE = False
 # new with oemof-solph 0.5.2
 from oemof.solph.buses._bus import Bus
+
 
 try:
     from oemof.solph.components import (
@@ -85,6 +87,28 @@ def fixed_width_text(text, char_num=10):
     return "\n".join(split_text)
 
 
+# TODO move this to network directly
+def extern_connections(nnode):
+    ext_inputs = []
+    ext_outputs = []
+    for sn in nnode.subnodes:
+        if sn.subnodes:
+            ext_in, ext_out = extern_connections(sn)
+            ext_inputs.extend(ext_in)
+            ext_outputs.extend(ext_out)
+        if hasattr(sn, "inputs"):
+            for i in sn.inputs:
+                if i.depth < sn.depth:
+                    ext_inputs.append(i)
+
+        if hasattr(sn, "outputs"):
+            for i in sn.outputs:
+                if i.depth < sn.depth:
+                    ext_outputs.append(i)
+
+    return ext_inputs, ext_outputs
+
+
 class ESGraphRenderer:
     def __init__(
         self,
@@ -92,7 +116,7 @@ class ESGraphRenderer:
         filepath=None,
         img_format=None,
         legend=False,
-        txt_width=10,
+        txt_width=40,
         txt_fontsize=10,
         **kwargs,
     ):
@@ -143,7 +167,7 @@ class ESGraphRenderer:
                 "You have to install the following packages to plot a graph\n"
                 "pip install {0}".format(" ".join(missing_modules))
             )
-
+        self.max_depth = None
         self.energy_system = energy_system
         if filepath is not None:
             file_name, file_ext = os.path.splitext(filepath)
@@ -161,68 +185,111 @@ class ESGraphRenderer:
             else:
                 img_format = "pdf"
 
-        self.dot = graphviz.Digraph(format=img_format, **kwargs)
+        self.legend = legend
+        self.img_format = img_format
+        self.digraph_kwargs = kwargs
         self.txt_width = txt_width
         self.txt_fontsize = str(txt_fontsize)
-        self.busses = []
 
-        if legend is True:
-            with self.dot.subgraph(name="cluster_1") as c:
-                # color of the legend box
-                c.attr(color="black")
-                # title of the legend box
-                c.attr(label="Legends")
-                self.add_bus(subgraph=c)
-                self.add_sink(subgraph=c)
-                self.add_source(subgraph=c)
-                self.add_transformer(subgraph=c)
-                self.add_storage(subgraph=c)
+    def add_components(self, components, subgraph=None, depth=0):
+        subnetworks = [
+            n for n in components if n.depth == depth and n.subnodes
+        ]
+        atomicnodes = [
+            n
+            for n in components
+            if n.depth == depth and not n.subnodes
+        ]
 
-        # draw a node for each of the energy_system's component.
-        # the shape depends on the component's type.
-        for nd in energy_system.nodes:
+        # draw the subnetworks recursively
+        if subnetworks:
+            for sn in subnetworks:
+                self.add_subnetwork(sn, subgraph=subgraph, depth=depth)
+
+
+        if atomicnodes:
+            components_to_add = atomicnodes
+
+        busses = []
+
+        for nd in components_to_add:
             # make sur the label is a string and not a tuple
             label = str(nd.label)
-            if isinstance(nd, Bus):
-                self.add_bus(nd.label)
-                # keep the bus reference for drawing edges later
-                self.busses.append(
-                    nd
-                )  # TODO here get the info from inputs and outputs and adapt the labels
-            elif isinstance(nd, Sink):
-                self.add_sink(nd.label)
-            elif isinstance(nd, Source):
-                self.add_source(nd.label)
-            elif isinstance(nd, OffsetConverter):
-                self.add_transformer(nd.label)
-            elif isinstance(nd, GenericCHP):
-                self.add_chp(nd.label)
-            elif isinstance(nd, ExtractionTurbineCHP):
-                self.add_chp(nd.label)
-            elif isinstance(nd, Converter):
-                self.add_transformer(nd.label)
-            elif isinstance(nd, Transformer):
-                self.add_transformer(nd.label)
-            elif isinstance(nd, GenericStorage):
-                self.add_storage(nd.label)
-            else:
-                logging.warning(
-                    "The oemof component {} of type {} is not implemented in "
-                    "the rendering method of the energy model graph drawer. "
-                    "It will be therefore rendered as an ellipse".format(
-                        nd.label, type(nd)
+            if nd.depth <= self.max_depth:
+                if isinstance(nd, Bus):
+                    self.add_bus(label, subgraph=subgraph)
+                    # keep the bus reference for drawing edges later
+                    busses.append(nd)
+                elif isinstance(nd, Sink):
+                    self.add_sink(label, subgraph=subgraph)
+                elif isinstance(nd, Source):
+                    self.add_source(label, subgraph=subgraph)
+                elif isinstance(nd, OffsetConverter):
+                    self.add_transformer(label, subgraph=subgraph)
+                elif isinstance(nd, GenericCHP):
+                    self.add_chp(label, subgraph=subgraph)
+                elif isinstance(nd, ExtractionTurbineCHP):
+                    self.add_chp(label, subgraph=subgraph)
+                elif isinstance(nd, Converter):
+                    self.add_transformer(label, subgraph=subgraph)
+                elif isinstance(nd, Transformer):
+                    self.add_transformer(label, subgraph=subgraph)
+                elif isinstance(nd, GenericStorage):
+                    self.add_storage(label, subgraph=subgraph)
+                else:
+                    logging.warning(
+                        "The oemof component {} of type {} is not implemented in "
+                        "the rendering method of the energy model graph drawer. "
+                        "It will be therefore rendered as an ellipse".format(
+                            nd.label, type(nd)
+                        )
                     )
-                )
-                self.add_component(nd.label)
+                    self.add_component(label, subgraph=subgraph)
 
+            else:
+                if isinstance(nd, Bus):
+                    busses.append(nd)
         # draw the edges between the nodes based on each bus inputs/outputs
-        for bus in self.busses:
+        for bus in busses:
             for component in bus.inputs:
                 # draw an arrow from the component to the bus
                 self.connect(component, bus)
             for component in bus.outputs:
-                # draw an arrow from the bus to the component
                 self.connect(bus, component)
+        self.busses.extend(busses)
+
+    def add_subnetwork(self, sn, subgraph=None, depth=0):
+        if subgraph is None:
+            dot = self.dot
+        else:
+            dot = subgraph
+
+        with dot.subgraph(name="cluster_" + str(sn.label)) as c:
+            # color of the box
+            c.attr(color="black")
+            # title of the box
+            c.attr(label=str(sn.label))
+            self.add_components(sn.subnodes, subgraph=c, depth=depth + 1)
+            if depth + 1 <= self.max_depth:
+                pass
+            else:
+                ext_inputs, ext_outputs = extern_connections(sn)
+
+                self.max_depth_connexions.extend([(i, sn) for i in ext_inputs])
+                self.max_depth_connexions.extend([(sn, o) for o in ext_outputs])
+
+                # draw a component at the depth limit
+                if sn.depth <= self.max_depth:
+                    dot.node(
+                        fixed_width_text(str(sn.label), char_num=self.txt_width),
+                        shape="rectangle",
+                        style="dashed",
+                        color="grey",
+                        fontsize=self.txt_fontsize,
+                    )
+
+                # collect the information about potential connections (no node will be drawn)
+                self.add_components(sn.subnodes, subgraph=c, depth=depth + 1)
 
     def add_bus(self, label="Bus", subgraph=None):
         if subgraph is None:
@@ -325,29 +392,83 @@ class ESGraphRenderer:
         b: `oemof.solph.network.Node`
             An oemof node (usually a Bus or a Component)
         """
-        if not isinstance(a, Bus):
-            a = fixed_width_text(a.label, char_num=self.txt_width)
-        else:
-            a = a.label
-        if not isinstance(b, Bus):
-            b = fixed_width_text(b.label, char_num=self.txt_width)
-        else:
-            b = b.label
 
-        self.dot.edge(a, b)
 
-    def view(self, **kwargs):
+        if a.depth <= self.max_depth and b.depth <= self.max_depth:
+            if not isinstance(a, Bus):
+                a = fixed_width_text(str(a.label), char_num=self.txt_width)
+            else:
+                a = str(a.label)
+            if not isinstance(b, Bus):
+                b = fixed_width_text(str(b.label), char_num=self.txt_width)
+            else:
+                b = str(b.label)
+
+            self.dot.edge(a, b, color="black")
+        else:
+            if isinstance(a, Bus):
+                component = b
+            else:
+                component = a
+            logging.debug(
+                "IGNORED THE COMPONENT ",
+                component,
+                " as it is below the max depth",
+            )
+
+    def _generate_graph(self, max_depth=None):
+        self.dot = graphviz.Digraph(format=self.img_format, **self.digraph_kwargs)
+        self.busses = []
+        self.max_depth_connexions = []
+        if max_depth is not None:
+            if max_depth >= 0:
+                self.max_depth = max_depth
+            else:
+                logging.warning("The max_depth cannot be lower than 0")
+        else:
+            self.max_depth = max([n.depth for n in self.energy_system.nodes])
+
+        if self.legend is True:
+            with self.dot.subgraph(name="cluster_1") as c:
+                # color of the legend box
+                c.attr(color="black")
+                # title of the legend box
+                c.attr(label="Legends")
+                self.add_bus(subgraph=c)
+                self.add_sink(subgraph=c)
+                self.add_source(subgraph=c)
+                self.add_transformer(subgraph=c)
+                self.add_storage(subgraph=c)
+
+        # draw a node for each of the energy_system's component.
+        # the shape depends on the component's type.
+        self.add_components(self.energy_system.nodes)
+
+        for link in self.max_depth_connexions:
+            self.connect(*link)
+
+    def view(self, max_depth=None, **kwargs):
         """Call the view method of the DiGraph instance"""
+        self._generate_graph(max_depth)
         self.dot.view(**kwargs)
 
-    def render(self, **kwargs):
+    def render(self, max_depth=None, **kwargs):
         """Call the render method of the DiGraph instance"""
-        print(self.dot.render(**kwargs))
+        self._generate_graph(max_depth)
+        fname = self.dot.render(cleanup=True, **kwargs)
+        logging.info(
+            f"The energy system graph was saved under '{fname}' in the current directory"
+        )
         return self.dot
 
-    def pipe(self, **kwargs):
+    def pipe(self, max_depth=None, **kwargs):
         """Call the pipe method of the DiGraph instance"""
+        self._generate_graph(max_depth)
         self.dot.pipe(**kwargs)
+
+    def source(self, max_depth=None):
+        self._generate_graph(max_depth)
+        return self.dot.source
 
     def sankey(self, results, ts=None):
         """Return a dict to a plotly sankey diagram"""
@@ -363,6 +484,7 @@ class ESGraphRenderer:
         # draw a node for each of the network's component.
         # The shape depends on the component's type
         for nd in self.energy_system.nodes:
+            label = str(nd.label)
             if isinstance(nd, Bus):
 
                 # keep the bus reference for drawing edges later
@@ -371,7 +493,7 @@ class ESGraphRenderer:
 
                 bus_label = bus.label
 
-                labels.append(nd.label)
+                labels.append(label)
 
                 flows = view_node(results, bus_label)["sequences"]
 
