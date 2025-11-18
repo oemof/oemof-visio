@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 """
-tested with python 3.11.13
 
-oemof.network==0.5.1a1
-oemof.solph==0.6.1a1
-oemof.tools==0.4.3
+Tested using the following versions of the dependencies:
+* oemof.network>=0.5.1
+* oemof.solph>=0.6.1
+* oemof.visio>=0.0.3a1
+
 """
 ###########################################################################
 # imports
